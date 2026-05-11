@@ -8,7 +8,7 @@ FileHandler::FileHandler(std::string filepath, std::ios::openmode mode) {
   std::fstream file(filepath, mode);
 
   if (!file.is_open()) {
-    throw std::runtime_error("Error: Unable to open file!\n");
+    throw std::runtime_error("unable to open file: " + filepath);
   }
 
   file_ = std::move(file);

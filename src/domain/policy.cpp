@@ -1,5 +1,6 @@
 #include "policy.hpp"
 
+#include <cassert>
 #include <stdexcept>
 
 #include "utils.hpp"
@@ -20,18 +21,21 @@ Policy::Policy(std::string client_uuid, PolicyType policy_type,
     : client_uuid_(std::move(client_uuid))
 
 {
-  if (start_date.empty()) throw std::runtime_error("Start date can't be empty");
+  if (start_date.empty())
+    throw std::invalid_argument("start date cannot be empty");
 
   if (!utils::date::isValidDate(start_date))
-    throw std::runtime_error("Invalid date");
+    throw std::invalid_argument("invalid start date");
 
   if (end_date && !utils::date::isValidDate(end_date.value()))
-    throw std::runtime_error("Invalid date");
+    throw std::invalid_argument("invalid end date");
 
   if (amount <= 0)
-    throw std::invalid_argument("Amount must be greater than zero");
+    throw std::invalid_argument("amount must be greater than zero");
 
   uuid_ = utils::generateUuid();
+  assert(!uuid_.empty() && "generateUuid returned empty string");
+
   policy_type_ = policy_type;
   start_date_ = std::move(start_date);
 
@@ -86,23 +90,23 @@ void Policy::setPolicyStatus(PolicyStatus policy_status) {
 
 void Policy::setPolicyStartDate(const std::string& start_date) {
   if (start_date.empty())
-    throw std::invalid_argument("Start date can't be empty");
+    throw std::invalid_argument("start date cannot be empty");
   if (!utils::date::isValidDate(start_date))
-    throw std::invalid_argument("Invalid date");
+    throw std::invalid_argument("invalid start date");
   start_date_ = start_date;
   updated_at_ = utils::currentTimestamp();
 }
 
 void Policy::setPolicyEndDate(const std::string& end_date) {
   if (!utils::date::isValidDate(end_date))
-    throw std::invalid_argument("Invalid date");
+    throw std::invalid_argument("invalid end date");
   end_date_ = end_date;
   updated_at_ = utils::currentTimestamp();
 }
 
 void Policy::setPolicyAmount(double amount) {
   if (amount <= 0)
-    throw std::invalid_argument("Amount must be greater than zero");
+    throw std::invalid_argument("amount must be greater than zero");
   amount_ = amount;
   updated_at_ = utils::currentTimestamp();
 }

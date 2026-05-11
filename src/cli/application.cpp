@@ -24,10 +24,14 @@ void Application::cmdConfig() { std::cout << "Feature not implemented yet!"; }
 void Application::cmdClear() { std::cout << "\033[2J\033[H"; }
 
 void Application::cmdSave() {
-  for (auto& [name, controller] : controllers_) {
-    controller->save();
+  try {
+    for (auto& [name, controller] : controllers_) {
+      controller->save();
+    }
+    std::cout << "  Data saved correctly.\n";
+  } catch (const std::exception& e) {
+    std::cerr << "  Error: " << e.what() << "\n";
   }
-  std::cout << "  Data saved correctly.\n";
 }
 
 void Application::cmdExit() {

@@ -1,5 +1,6 @@
 #include "csv_client_repository.hpp"
 
+#include <cassert>
 #include <filesystem>
 #include <optional>
 #include <sstream>
@@ -9,14 +10,6 @@
 #include "../domain/client_status.hpp"
 #include "../domain/utils.hpp"
 #include "file_handle.hpp"
-
-/* TODO: I have to remember to do defensive checks for operations
- *
- * But I think is not its responsibility?
- * I am not sure becasue the dirty flag is updated here and since it must be
- * updated only if operation succeed, I should make some checks.
- *
- * */
 
 namespace insura::data {
 
@@ -39,10 +32,9 @@ void CsvClientRepository::removeClient(std::string_view uuid) {
                            [uuid](const domain::Client& client) {
                              return client.getUuid() == uuid;
                            });
-  if (it != clients_.end()) {
-    clients_.erase(it, clients_.end());
-    dirty_ = true;
-  }
+  assert(it != clients_.end() && "removeClient: UUID not found");
+  clients_.erase(it, clients_.end());
+  dirty_ = true;
 }
 
 std::optional<domain::Client> CsvClientRepository::findByUuid(
@@ -75,10 +67,10 @@ void CsvClientRepository::updateClient(domain::Client updated) {
                            return c.getUuid() == updated.getUuid();
                          });
 
-  if (it != clients_.end()) {
-    *it = std::move(updated);
-    dirty_ = true;
-  }
+  assert(it != clients_.end() && "updateClient: UUID not found");
+
+  *it = std::move(updated);
+  dirty_ = true;
 }
 
 void CsvClientRepository::load() {
@@ -94,7 +86,7 @@ void CsvClientRepository::load() {
       }
     }
   } else {
-    throw std::runtime_error("Error: File doesn't exist");
+    throw std::runtime_error("file not found: " + filepath_);
   };
 
   clients_ = std::move(tmp_clients);
@@ -155,10 +147,12 @@ domain::Client CsvClientRepository::deserialize(const std::string& line) const {
 
   domain::Client::ClientStatus lead_status = domain::statusFromString(status);
 
-  return domain::Client(uuid, first, last, email, utils::stringToOptional(phone), utils::stringToOptional(job),
-                        utils::stringToOptional(company), utils::stringToOptional(address), utils::stringToOptional(city),
-                        utils::stringToOptional(postal_code), lead_status, utils::stringToOptional(notes),
-                        created_at, updated_at);
+  return domain::Client(
+      uuid, first, last, email, utils::stringToOptional(phone),
+      utils::stringToOptional(job), utils::stringToOptional(company),
+      utils::stringToOptional(address), utils::stringToOptional(city),
+      utils::stringToOptional(postal_code), lead_status,
+      utils::stringToOptional(notes), created_at, updated_at);
 }
 
 }  // namespace insura::data

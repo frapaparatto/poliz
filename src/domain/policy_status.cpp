@@ -15,6 +15,8 @@ std::string policyStatusToString(Policy::PolicyStatus status) {
       return "cancelled";
     case Policy::PolicyStatus::PENDING:
       return "pending";
+    default:
+      throw std::invalid_argument("unhandled policy status value");
   }
 }
 
@@ -24,8 +26,7 @@ Policy::PolicyStatus policyStatusFromString(std::string_view str) {
   if (str == "cancelled") return Policy::PolicyStatus::CANCELLED;
   if (str == "pending") return Policy::PolicyStatus::PENDING;
 
-  throw std::invalid_argument("Error: Unknown policy status: " +
-                              std::string(str));
+  throw std::invalid_argument("unknown policy status: " + std::string(str));
 }
 
 std::string policyTypeToString(Policy::PolicyType type) {
@@ -38,6 +39,8 @@ std::string policyTypeToString(Policy::PolicyType type) {
       return "health";
     case Policy::PolicyType::HOME:
       return "home";
+    default:
+      throw std::invalid_argument("unhandled policy type value");
   }
 }
 
@@ -47,8 +50,7 @@ Policy::PolicyType policyTypeFromString(std::string_view str) {
   if (str == "health") return Policy::PolicyType::HEALTH;
   if (str == "home") return Policy::PolicyType::HOME;
 
-  throw std::invalid_argument("Error: Unknown policy type: " +
-                              std::string(str));
+  throw std::invalid_argument("unknown policy type: " + std::string(str));
 }
 
 }  // namespace insura::domain

@@ -114,11 +114,20 @@ double previewPolicyAmount(insura::domain::Policy::PolicyType type,
                            int duration_months) {
   int col;
   switch (duration_months) {
-    case 6:  col = 0; break;
-    case 12: col = 1; break;
-    case 24: col = 2; break;
-    case 36: col = 3; break;
-    default: return 0.0;
+    case 6:
+      col = 0;
+      break;
+    case 12:
+      col = 1;
+      break;
+    case 24:
+      col = 2;
+      break;
+    case 36:
+      col = 3;
+      break;
+    default:
+      return 0.0;
   }
   return kDisplayPricingTable[static_cast<int>(type)][col];
 }
@@ -135,11 +144,11 @@ PolicyController::PolicyController(service::PolicyService& policy_service,
       policy_repo_(policy_repo),
       client_service_(client_service),
       client_repo_(client_repo) {
-  commands_["add"]    = [this]() { cmdAdd(); };
+  commands_["add"] = [this]() { cmdAdd(); };
   commands_["search"] = [this]() { cmdSearch(); };
-  commands_["list"]   = [this]() { cmdList(); };
-  commands_["view"]   = [this]() { cmdView(); };
-  commands_["edit"]   = [this]() { cmdEdit(); };
+  commands_["list"] = [this]() { cmdList(); };
+  commands_["view"] = [this]() { cmdView(); };
+  commands_["edit"] = [this]() { cmdEdit(); };
   commands_["delete"] = [this]() { cmdDelete(); };
 }
 

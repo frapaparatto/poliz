@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <stdexcept>
+#include <string>
 
 #include "../domain/utils.hpp"
 
@@ -43,7 +44,8 @@ double PolicyService::calculateAmount(domain::Policy::PolicyType type,
       duration_to_index = 3;
       break;
     default:
-      throw std::invalid_argument("Error: Invalid duration");
+      throw std::invalid_argument("invalid duration months: " +
+                                  std::to_string(duration));
   }
 
   auto type_index = static_cast<int>(type);
@@ -55,7 +57,7 @@ void PolicyService::addPolicy(const domain::PolicyData& policy_data) {
    * end_date and amount are derived here per ADR-019, not supplied by the
    * caller. */
   if (!insura::utils::date::isValidDate(policy_data.start_date)) {
-    throw std::invalid_argument("Invalid start date: " +
+    throw std::invalid_argument("invalid start date: " +
                                 policy_data.start_date);
   }
 
@@ -74,8 +76,9 @@ void PolicyService::addPolicy(const domain::PolicyData& policy_data) {
 }
 
 void PolicyService::deletePolicy(std::string_view policy_uuid) {
-  if (!policy_repo_.findByUuid(policy_uuid))
-    throw std::invalid_argument("Error: No Policy found");
+  auto policy = policy_repo_.findByUuid(policy_uuid);
+  assert(policy.has_value() && "deletePolicy: UUID not found");
+  if (!policy) throw std::invalid_argument("policy not found");
 
   policy_repo_.removePolicy(policy_uuid);
 }
@@ -83,10 +86,8 @@ void PolicyService::deletePolicy(std::string_view policy_uuid) {
 void PolicyService::editPolicy(std::string_view policy_uuid,
                                const domain::PolicyData& update_policy_data) {
   auto policy = policy_repo_.findByUuid(policy_uuid);
-
-  if (!policy) {
-    throw std::invalid_argument("Error: No Policy found");
-  }
+  assert(policy.has_value() && "editPolicy: UUID not found");
+  if (!policy) throw std::invalid_argument("policy not found");
 
   /* editPolicy only accepts status and notes because all other fields are
    * immutable contract-defining fields per ADR-019. */
