@@ -7,7 +7,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(Catch2)
-add_executable(crm_tests tests_strops.cpp tests_utils.cpp tests_status.cpp)
+add_executable(crm_tests tests_strops.cpp tests_utils.cpp tests_status_converter.cpp)
 target_link_libraries(crm_tests 
   PRIVATE 
   Catch2::Catch2WithMain
