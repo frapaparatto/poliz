@@ -10,11 +10,6 @@
 #include "./service/client_service.hpp"
 #include "./service/policy_service.hpp"
 
-/* TODO: set CMAKE_BUILD_TYPE explicitly in CMakeLists.txt. Use Debug
-during development (asserts active, debug symbols for gdb). Switch
-to Release for performance testing (ADR-015). Consider supporting
-both build directories side by side (build-debug, build-release).
-*/
 // TODO END OF THE PROJECT: order all notes in docs/personal becasue lots of
 // them needs to be used together with daily notes e.g. all pattern could became
 // feynman-like files to explain pattern better. Explaining most important

@@ -79,9 +79,21 @@ std::string currentTimestamp() {
 };
 
 bool isValidEmail(std::string_view email) {
-  static const std::regex pattern("(\\w+)(\\.|_)?(\\w*)@(\\w+)(\\.(\\w+))+");
-  /* Using an iterator because std::regex_match doesn't have overload
-   * that accepts std::string_view */
+  /*
+   * Regex created with AI assistance (Claude).
+   *
+   * Stricter than the previous pattern:
+   *  - local part must start and end with an alphanumeric character
+   *  - domain labels cannot start or end with a hyphen
+   *  - TLD is restricted to alphabetic characters only (2+ chars)
+   *
+   * Known limitation: consecutive dots in the local part (e.g. a..b@x.com)
+   * are not rejected; a lookahead would be needed to catch them.
+   *
+   * Using iterators because std::regex_match has no overload for std::string_view.
+   */
+  static const std::regex pattern(
+      R"([a-zA-Z0-9]([a-zA-Z0-9.+_-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,})");
   return std::regex_match(email.begin(), email.end(), pattern);
 }
 
@@ -129,7 +141,7 @@ std::string calculateEndDate(const std::string& start_date, int duration) {
 }
 
 bool isLeapYear(int year) {
-  return (year % 400) || (year % 4 == 0 && year % 100 != 0);
+  return (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0);
 }
 
 /* This function was specifically designed for the format YYYY-MM-DD
