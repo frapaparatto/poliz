@@ -1,5 +1,6 @@
 #include "client_service.hpp"
 
+#include <cassert>
 #include <stdexcept>
 
 #include "../domain/strops.hpp"
@@ -17,7 +18,7 @@ bool ClientService::isEmailUnique(std::string_view email) const {
  */
 void ClientService::addClient(const domain::ClientData& client_data) {
   if (!isEmailUnique(client_data.email)) {
-    throw std::invalid_argument("Error: Email already used!");
+    throw std::invalid_argument("email already in use");
   }
 
   auto status =
@@ -33,9 +34,13 @@ void ClientService::addClient(const domain::ClientData& client_data) {
 }
 
 void ClientService::deleteClient(std::string_view uuid) {
-  /* Ensure that after usage of uuid actually finds client */
-  if (!repo_.findByUuid(uuid).has_value())
-    throw std::invalid_argument("Error: No contact found");
+  /* I used assert for my exception strategy here but I've also kept
+   * the throw since if the function is called from another point
+   * like an API, the bug is catched in released mode. */
+
+  auto client = repo_.findByUuid(uuid);
+  assert(client.has_value() && "deleteClient: UUID not found");
+  if (!client) throw std::invalid_argument("client not found");
 
   std::vector<domain::Policy> client_policies =
       policies_.findByClientUuid(uuid);
@@ -49,11 +54,10 @@ void ClientService::deleteClient(std::string_view uuid) {
 
 void ClientService::editClient(std::string_view uuid,
                                const domain::ClientData& new_client_data) {
+  /* Same pattern used in deleteClient */
   auto client = repo_.findByUuid(uuid);
-
-  if (!client) {
-    throw std::invalid_argument("Error: No contact found");
-  }
+  assert(client.has_value() && "editClient: UUID not found");
+  if (!client) throw std::invalid_argument("client not found");
 
   if (!new_client_data.first_name.empty()) {
     client->setFirstName(new_client_data.first_name);
@@ -66,7 +70,7 @@ void ClientService::editClient(std::string_view uuid,
   if (!new_client_data.email.empty()) {
     if (new_client_data.email != client->getEmail() &&
         !isEmailUnique(new_client_data.email)) {
-      throw std::invalid_argument("Error: Email already used!");
+      throw std::invalid_argument("email already in use");
     }
     client->setEmail(new_client_data.email);
   }
@@ -107,7 +111,7 @@ void ClientService::editClient(std::string_view uuid,
    * *client is an lvalue (stored inside std::optional). std::move casts it to
    * an rvalue so updateClient move-constructs its by-value parameter instead of
    * copying. One unavoidable copy occurred when findByUuid returned into the
-   * optional — everything after is zero-copy.
+   * optional, everything after is zero-copy.
    */
   repo_.updateClient(std::move(*client));
 }

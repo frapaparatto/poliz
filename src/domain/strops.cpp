@@ -27,10 +27,6 @@ std::string trim(std::string s) {
 }
 
 std::string capitalize(std::string s) {
-  /* Lowercase first so mixed-case input like "FRancesCo" is fully normalized
-   * before uppercasing word initials — without this step only the first char
-   * would be fixed while interior capitals survive. */
-  s = lower(std::move(s));
 
   bool next = true;
   for (auto& c : s) {

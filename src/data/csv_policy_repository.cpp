@@ -1,8 +1,10 @@
 #include "./csv_policy_repository.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 #include "../domain/policy_status.hpp"
@@ -23,10 +25,9 @@ void CsvPolicyRepository::removePolicy(std::string_view uuid) {
       policies_.begin(), policies_.end(),
       [uuid](const domain::Policy& p) { return p.getUuid() == uuid; });
 
-  if (it != policies_.end()) {
-    policies_.erase(it, policies_.end());
-    dirty_ = true;
-  }
+  assert(it != policies_.end() && "removePolicy: UUID not found");
+  policies_.erase(it, policies_.end());
+  dirty_ = true;
 }
 
 std::optional<domain::Policy> CsvPolicyRepository::findByUuid(
@@ -81,10 +82,9 @@ void CsvPolicyRepository::updatePolicy(domain::Policy updated) {
                            return p.getUuid() == updated.getUuid();
                          });
 
-  if (it != policies_.end()) {
-    *it = std::move(updated);
-    dirty_ = true;
-  }
+  assert(it != policies_.end() && "updatePolicy: UUID not found");
+  *it = std::move(updated);
+  dirty_ = true;
 }
 
 std::string CsvPolicyRepository::serialize(const domain::Policy& p) const {
@@ -119,9 +119,16 @@ domain::Policy CsvPolicyRepository::deserialize(const std::string& line) const {
   std::getline(ss, created_at, ',');
   std::getline(ss, updated_at, ',');
 
+  double parsed_amount;
+  try {
+    parsed_amount = std::stod(amount);
+  } catch (const std::exception&) {
+    throw std::runtime_error("invalid amount in CSV: " + amount);
+  }
+
   return domain::Policy(uuid, client_uuid,
                         domain::policyTypeFromString(policy_type), start_date,
-                        utils::stringToOptional(end_date), std::stod(amount),
+                        utils::stringToOptional(end_date), parsed_amount,
                         domain::policyStatusFromString(policy_status),
                         utils::stringToOptional(notes), created_at, updated_at);
 }
@@ -142,7 +149,7 @@ void CsvPolicyRepository::load() {
       tmp_policies.push_back(deserialize(line));
     }
   } else {
-    throw std::runtime_error("Error: File doesn't exists");
+    throw std::runtime_error("file not found: " + filepath_);
   }
 
   policies_ = std::move(tmp_policies);

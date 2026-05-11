@@ -1,5 +1,6 @@
 #include "client.hpp"
 
+#include <cassert>
 #include <stdexcept>
 
 #include "utils.hpp"
@@ -63,6 +64,8 @@ Client::Client(std::string first_name, std::string last_name, std::string email,
   }
 
   uuid_ = utils::generateUuid();
+  assert(!uuid_.empty() && "generateUuid returned empty string");
+
   first_name_ = std::move(first_name);
   last_name_ = std::move(last_name);
   email_ = std::move(email);
