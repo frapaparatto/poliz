@@ -1,1 +1,25 @@
+include(FetchContent)
 
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v3.4.0  # Stable version
+)
+
+FetchContent_MakeAvailable(Catch2)
+add_executable(crm_tests tests_strops.cpp tests_utils.cpp tests_status.cpp)
+target_link_libraries(crm_tests 
+  PRIVATE 
+  Catch2::Catch2WithMain
+  insura_data
+  insura_cli
+  insura_service
+)
+
+# This line tells CMake where to find the "Catch.cmake" script
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+
+target_include_directories(crm_tests PRIVATE ../src)
+include(CTest)
+include(Catch)
+catch_discover_tests(crm_tests)
