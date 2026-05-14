@@ -14,14 +14,14 @@
 namespace insura::cli {
 
 namespace {
-constexpr int kTypeWidth   = 10;
+constexpr int kTypeWidth = 10;
 constexpr int kClientWidth = 22;
 constexpr int kStatusWidth = 15;
 constexpr int kAmountWidth = 12;
-constexpr int kDateWidth   = 12;
-const std::string kSeparator(
-    kTypeWidth + kClientWidth + kStatusWidth + kAmountWidth + kDateWidth * 2,
-    '-');
+constexpr int kDateWidth = 12;
+const std::string kSeparator(kTypeWidth + kClientWidth + kStatusWidth +
+                                 kAmountWidth + kDateWidth * 2,
+                             '-');
 
 std::string fmtAmount(double v) {
   std::ostringstream ss;
@@ -33,17 +33,20 @@ std::string fmtAmount(double v) {
 void PolicyView::displayAll(
     const std::vector<domain::Policy>& policies,
     const std::unordered_map<std::string, std::string>& client_names) {
+
+  /* TODO: evaluate if that defensive check is worth doing here or if is better
+   * to ensure each call site actually checks before passing and here adding an
+   * assert */
   if (policies.empty()) {
     std::cout << "No policies found.\n";
     return;
   }
 
-  std::cout << std::left << std::setw(kTypeWidth)   << "Type"
-                         << std::setw(kClientWidth) << "Client"
-                         << std::setw(kStatusWidth) << "Status"
-                         << std::setw(kAmountWidth) << "Amount"
-                         << std::setw(kDateWidth)   << "Start Date"
-                         << std::setw(kDateWidth)   << "End Date" << '\n'
+  std::cout << std::left << std::setw(kTypeWidth) << "Type"
+            << std::setw(kClientWidth) << "Client" << std::setw(kStatusWidth)
+            << "Status" << std::setw(kAmountWidth) << "Amount"
+            << std::setw(kDateWidth) << "Start Date" << std::setw(kDateWidth)
+            << "End Date" << '\n'
             << kSeparator << '\n';
 
   for (const auto& p : policies) {
@@ -54,12 +57,11 @@ void PolicyView::displayAll(
 
     std::cout << std::left << std::setw(kTypeWidth)
               << domain::policyTypeToString(p.getPolicyType())
-              << std::setw(kClientWidth) << name
-              << std::setw(kStatusWidth)
+              << std::setw(kClientWidth) << name << std::setw(kStatusWidth)
               << domain::policyStatusToString(p.getPolicyStatus())
               << std::setw(kAmountWidth + 2) << fmtAmount(p.getPolicyAmount())
-              << std::setw(kDateWidth)        << p.getPolicyStartDate()
-              << std::setw(kDateWidth)        << p.getPolicyEndDate().value_or("N/A")
+              << std::setw(kDateWidth) << p.getPolicyStartDate()
+              << std::setw(kDateWidth) << p.getPolicyEndDate().value_or("N/A")
               << '\n';
   }
 }

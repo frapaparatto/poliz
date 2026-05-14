@@ -274,8 +274,24 @@ void PolicyController::cmdAdd() {
 
 void PolicyController::cmdList() {
   std::unordered_map<std::string, std::string> name_map;
-  for (const auto& c : client_repo_.findAll()) {
-    name_map[c.getUuid()] = c.getFirstName() + " " + c.getLastName();
+  auto policies = policy_repo_.findAll();
+
+  /* check used in order to build the name map only for
+   * client that has policies instead of creating a
+   * name map for all clients
+   */
+  if (policies.empty()) {
+    std::cout << "No policies found.\n";
+    return;
+  }
+
+  for (const auto& p : policies) {
+    if (name_map.count(p.getClientUuid()) == 0) {
+      auto client = client_repo_.findByUuid(p.getClientUuid());
+      assert(client.has_value() && "policy references non-existent client");
+      name_map[client->getUuid()] =
+          client->getFirstName() + " " + client->getLastName();
+    }
   }
 
   std::cout << '\n';
@@ -283,8 +299,7 @@ void PolicyController::cmdList() {
 }
 
 void PolicyController::cmdSearch() {
-
-  std::cout << "Search by:\n"
+  std::cout << "\nSearch by:\n"
             << "  1. Client\n"
             << "  2. Type\n"
             << "  3. Status\n"
@@ -330,8 +345,13 @@ void PolicyController::cmdSearch() {
   }
 
   std::unordered_map<std::string, std::string> name_map;
-  for (const auto& c : client_repo_.findAll()) {
-    name_map[c.getUuid()] = c.getFirstName() + " " + c.getLastName();
+  for (const auto& p : results) {
+    if (name_map.count(p.getClientUuid()) == 0) {
+      auto client = client_repo_.findByUuid(p.getClientUuid());
+      assert(client.has_value() && "policy references non-existent client");
+      name_map[client->getUuid()] =
+          client->getFirstName() + " " + client->getLastName();
+    }
   }
 
   std::cout << '\n';
