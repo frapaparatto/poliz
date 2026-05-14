@@ -30,7 +30,6 @@ class Application {
   void cmdSave();
   void cmdExit();
   void cmdClear();
-  void cmdConfig();
 };
 
 }  // namespace insura::cli

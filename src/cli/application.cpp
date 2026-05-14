@@ -19,8 +19,6 @@ Application::Application(service::ClientService& client_service,
       policy_service, policy_repo, client_service, client_repo);
 }
 
-void Application::cmdConfig() { std::cout << "Feature not implemented yet!"; }
-
 void Application::cmdClear() { std::cout << "\033[2J\033[H"; }
 
 void Application::cmdSave() {

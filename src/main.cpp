@@ -6,7 +6,9 @@
 #include "./cli/application.hpp"
 #include "./data/csv_client_repository.hpp"
 #include "./data/csv_policy_repository.hpp"
+#include "./data/file_handle.hpp"
 #include "./domain/strops.hpp"
+#include "./domain/utils.hpp"
 #include "./service/client_service.hpp"
 #include "./service/policy_service.hpp"
 
@@ -29,7 +31,91 @@
  * resolved path down — the repo stays unaware of any config. */
 
 namespace {
-static constexpr const char* kDefaultDir = "insurapro_data";
+
+struct CrmConfig {
+  std::string default_directory = "insurapro_data";
+  std::string clients_filename = "clients.csv";
+  std::string policies_filename = "policies.csv";
+  bool autosave_enabled = true;
+  int autosave_interval_seconds = 60;
+};
+
+static constexpr const char* config_path = "insurapro.conf";
+
+void applyConfigLine(CrmConfig& config, const std::string& key,
+                     const std::string& value) {
+  if (key == "default_directory") {
+    config.default_directory = value;
+  } else if (key == "clients_filename") {
+    if (!insura::utils::isValidCsvFile(value)) {
+      std::cerr << "\nConfig warning [" << key << "]: '" << value
+                << "' is not a valid CSV filename. Default used: "
+                << config.clients_filename << "\n";
+      return;
+    }
+    config.clients_filename = value;
+  } else if (key == "policies_filename") {
+    if (!insura::utils::isValidCsvFile(value)) {
+      std::cerr << "\nConfig warning [" << key << "]: '" << value
+                << "' is not a valid CSV filename. Default used: "
+                << config.policies_filename << "\n";
+      return;
+    }
+    config.policies_filename = value;
+  } else if (key == "autosave_enabled") {
+    if (value != "true" && value != "false") {
+      auto default_value = config.autosave_enabled ? "true" : "false";
+
+      std::cerr << "\nConfig warning [" << key << "]: '" << value
+                << "' is not a valid boolean (expected \"true\" or \"false\"). "
+                   "Default used: "
+                << default_value << "\n";
+      return;
+    }
+    config.autosave_enabled = (value == "true");
+  } else if (key == "autosave_interval_seconds") {
+    try {
+      int interval = std::stoi(value);
+      if (interval <= 0) {
+        std::cerr << "\nConfig warning [" << key << "]: '" << value
+                  << "' is not a positive intege. Default used: "
+                  << config.autosave_interval_seconds << "\n";
+        return;
+      }
+      config.autosave_interval_seconds = interval;
+    } catch (...) {
+      std::cerr << "\nConfig warning [" << key << "]: '" << value
+                << "' is not a valid integer. Default used: "
+                << config.autosave_interval_seconds << "\n";
+    }
+  } else {
+    std::cerr << "\nConfig warning [" << key
+              << "]: unrecognized option. Ignored.\n";
+  }
+}
+
+CrmConfig parseConfig() {
+  CrmConfig config;
+  if (!std::filesystem::exists(config_path)) return config;
+
+  insura::data::FileHandler in(config_path, std::ios::in);
+  std::string line;
+
+  while (std::getline(in.getStream(), line)) {
+    line = insura::domain::strops::trim(line);
+    if (line.empty() || line[0] == '#') continue;
+
+    auto pos = line.find('=');
+    if (pos == std::string::npos) continue;
+
+    std::string key = insura::domain::strops::trim(line.substr(0, pos));
+    std::string value = insura::domain::strops::trim(line.substr(pos + 1));
+
+    applyConfigLine(config, key, value);
+  }
+
+  return config;
+}
 
 constexpr int kInitWidth = 16;
 
@@ -50,19 +136,20 @@ struct CrmRepositories {
 
 void cmdExit() { std::exit(0); }
 
-CrmRepositories cmdNew() {
+CrmRepositories cmdNew(const CrmConfig& config) {
   std::string dirpath;
-  std::cout << "Enter the directory path (default: " << kDefaultDir << "): ";
+  std::cout << "Enter the directory path (default: " << config.default_directory
+            << "): ";
   std::getline(std::cin, dirpath);
 
-  if (dirpath.empty()) dirpath = kDefaultDir;
+  if (dirpath.empty()) dirpath = config.default_directory;
 
   if (!std::filesystem::exists(dirpath)) {
     std::filesystem::create_directory(dirpath);
   }
 
-  std::string client_path = dirpath + "/clients.csv";
-  std::string policy_path = dirpath + "/policies.csv";
+  std::string client_path = dirpath + "/" + config.clients_filename;
+  std::string policy_path = dirpath + "/" + config.policies_filename;
 
   CrmRepositories repositories;
   repositories.client_repo =
@@ -73,7 +160,7 @@ CrmRepositories cmdNew() {
   return repositories;
 }
 
-CrmRepositories cmdLoad() {
+CrmRepositories cmdLoad(const CrmConfig& config) {
   while (true) {
     std::string dirpath;
     std::cout << "Enter the directory path to load: ";
@@ -103,8 +190,8 @@ CrmRepositories cmdLoad() {
       if (choice == "retry") continue;
       if (choice == "new") {
         std::filesystem::create_directory(dirpath);
-        std::string client_path = dirpath + "/clients.csv";
-        std::string policy_path = dirpath + "/policies.csv";
+        std::string client_path = dirpath + "/" + config.clients_filename;
+        std::string policy_path = dirpath + "/" + config.policies_filename;
 
         CrmRepositories repositories;
         repositories.client_repo =
@@ -119,8 +206,8 @@ CrmRepositories cmdLoad() {
       continue;
     }
 
-    std::string client_path = dirpath + "/clients.csv";
-    std::string policy_path = dirpath + "/policies.csv";
+    std::string client_path = dirpath + "/" + config.clients_filename;
+    std::string policy_path = dirpath + "/" + config.policies_filename;
 
     CrmRepositories repositories;
     repositories.client_repo =
@@ -148,6 +235,7 @@ CrmRepositories cmdLoad() {
 }  // namespace
 
 int main() {
+  CrmConfig config = parseConfig();
   CrmRepositories repos;
 
   while (true) {
@@ -158,10 +246,10 @@ int main() {
     option = insura::domain::strops::trim(option);
 
     if (option == "new") {
-      repos = cmdNew();
+      repos = cmdNew(config);
       break;
     } else if (option == "load") {
-      repos = cmdLoad();
+      repos = cmdLoad(config);
       if (repos.client_repo && repos.policy_repo) break;
     } else if (option == "exit") {
       cmdExit();
