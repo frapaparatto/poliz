@@ -31,6 +31,7 @@ namespace insura::domain {
 class IPolicyRepository {
  public:
   virtual void save() const = 0;
+  virtual bool isDirty() const = 0;
   virtual void insertPolicy(Policy policy) = 0;
   virtual void removePolicy(std::string_view uuid) = 0;
   virtual void updatePolicy(Policy updated) = 0;

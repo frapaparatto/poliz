@@ -165,5 +165,6 @@ void CsvPolicyRepository::save() const {
     }
   }
   std::rename(tmp.c_str(), filepath_.c_str());
+  dirty_ = false;
 }
 }  // namespace insura::data

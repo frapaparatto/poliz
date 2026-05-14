@@ -35,11 +35,19 @@ void Application::cmdSave() {
 }
 
 void Application::cmdExit() {
-  std::string choice;
-  std::cout << "Save before exiting? (Y/n): ";
-  std::getline(std::cin, choice);
-  choice = domain::strops::trim(choice);
-  if (choice != "n") cmdSave();
+  bool any_dirty = false;
+  for (auto& [name, controller] : controllers_) {
+    if (controller->isDirty()) { any_dirty = true; break; }
+  }
+
+  if (any_dirty) {
+    std::string choice;
+    std::cout << "Save before exiting? (Y/n): ";
+    std::getline(std::cin, choice);
+    choice = domain::strops::trim(choice);
+    if (choice != "n") cmdSave();
+  }
+
   std::cout << "Closing session.\n";
   running_ = false;
 }

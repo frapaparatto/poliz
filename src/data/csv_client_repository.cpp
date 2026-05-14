@@ -101,6 +101,7 @@ void CsvClientRepository::save() const {
     }
   }
   std::rename(tmp.c_str(), filepath_.c_str());  // atomic swap
+  dirty_ = false;
 }
 
 std::string CsvClientRepository::serialize(const domain::Client& c) const {

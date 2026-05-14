@@ -19,11 +19,12 @@ class CsvClientRepository : public domain::IClientRepository {
 
  private:
   void save() const override;
+  bool isDirty() const override { return dirty_; }
   std::string serialize(const domain::Client& c) const;
   domain::Client deserialize(const std::string& line) const;
   std::vector<domain::Client> clients_;
   std::string filepath_;
-  bool dirty_ = false;
+  mutable bool dirty_ = false;
   ;
 };
 }  // namespace insura::data

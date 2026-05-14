@@ -72,6 +72,7 @@ namespace insura::domain {
 class IClientRepository {
  public:
   virtual void save() const = 0;
+  virtual bool isDirty() const = 0;
   virtual void insertClient(Client client) = 0;
   virtual void removeClient(std::string_view uuid) = 0;
   virtual void updateClient(Client updated) = 0;

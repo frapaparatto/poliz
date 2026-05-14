@@ -20,6 +20,7 @@ class PolicyController : public IEntityController {
                    domain::IClientRepository& client_repo);
 
   void save() override;
+  bool isDirty() const override;
   void cmdAdd() override;
   void cmdList() override;
   void cmdSearch() override;

@@ -109,6 +109,8 @@ ClientController::ClientController(service::ClientService& client_service,
 
 void ClientController::save() { repo_.save(); }
 
+bool ClientController::isDirty() const { return repo_.isDirty(); }
+
 void ClientController::execute(const std::string& cmd) {
   auto it = commands_.find(cmd);
 

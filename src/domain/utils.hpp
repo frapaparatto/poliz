@@ -16,6 +16,7 @@ namespace date {
 bool isValidDate(const std::string& date);
 bool isDateAfter(const std::string& start_date, const std::string& end_date);
 bool isLeapYear(int year);
+std::string today();
 std::string calculateEndDate(const std::string& start_date, int duration);
 }
 }  // namespace insura::utils

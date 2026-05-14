@@ -90,7 +90,8 @@ bool isValidEmail(std::string_view email) {
    * Known limitation: consecutive dots in the local part (e.g. a..b@x.com)
    * are not rejected; a lookahead would be needed to catch them.
    *
-   * Using iterators because std::regex_match has no overload for std::string_view.
+   * Using iterators because std::regex_match has no overload for
+   * std::string_view.
    */
   static const std::regex pattern(
       R"([a-zA-Z0-9]([a-zA-Z0-9.+_-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\.[a-zA-Z]{2,})");
@@ -169,6 +170,16 @@ bool isValidDate(const std::string& date) {
   if (day < 1 || day > days_per_month[month - 1]) return false;
 
   return true;
+}
+
+std::string today() {
+  auto now = std::chrono::system_clock::now();
+  std::time_t t = std::chrono::system_clock::to_time_t(now);
+  std::tm* tm = std::localtime(&t);
+
+  std::ostringstream oss;
+  oss << std::put_time(tm, "%Y-%m-%d");
+  return oss.str();
 }
 
 }  // namespace date

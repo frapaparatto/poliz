@@ -8,6 +8,7 @@ class IEntityController {
   virtual ~IEntityController() = default;
 
   virtual void save() = 0;
+  virtual bool isDirty() const = 0;
   virtual void cmdAdd() = 0;
   virtual void cmdList() = 0;
   virtual void cmdSearch() = 0;

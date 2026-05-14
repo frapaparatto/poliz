@@ -18,6 +18,7 @@ class ClientController : public IEntityController {
                    service::PolicyService& policy_service);
 
   void save() override;
+  bool isDirty() const override;
   void cmdAdd() override;
   void cmdList() override;
   void cmdSearch() override;

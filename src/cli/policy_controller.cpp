@@ -162,6 +162,8 @@ void PolicyController::execute(const std::string& cmd) {
 
 void PolicyController::save() { policy_repo_.save(); }
 
+bool PolicyController::isDirty() const { return policy_repo_.isDirty(); }
+
 /* Prompts only for the two fields mutable after creation per ADR-019.
  * All contract-defining fields (type, dates, amount, client) are immutable
  * and intentionally absent from this form. */
@@ -227,12 +229,16 @@ void PolicyController::cmdAdd() {
 
   /* Step 4: start date: validated before the preview is shown */
   while (true) {
-    std::cout << "Start date (YYYY-MM-DD): ";
+    std::cout << "Start date (YYYY-MM-DD, Enter for today): ";
     std::string date;
     std::getline(std::cin, date);
     date = insura::domain::strops::trim(date);
+    if (date.empty()) {
+      data.start_date = insura::utils::date::today();
+      break;
+    }
     if (!insura::utils::date::isValidDate(date)) {
-      std::cout << "  Invalid date format. Use YYYY-MM-DD.\n";
+      std::cout << "  Invalid date. Expected format: YYYY-MM-DD.\n";
       continue;
     }
     data.start_date = date;
