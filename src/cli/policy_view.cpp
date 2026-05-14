@@ -1,9 +1,11 @@
 #include "policy_view.hpp"
 
+#include <cassert>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include "../domain/client.hpp"
@@ -46,8 +48,9 @@ void PolicyView::displayAll(
 
   for (const auto& p : policies) {
     auto it = client_names.find(p.getClientUuid());
-    const std::string& name =
-        it != client_names.end() ? it->second : "Unknown";
+    assert(it != client_names.end() &&
+           "policy must be associated with a valid client");
+    const std::string& name = it->second;
 
     std::cout << std::left << std::setw(kTypeWidth)
               << domain::policyTypeToString(p.getPolicyType())
@@ -71,13 +74,15 @@ bool PolicyView::confirmClient(const domain::Client& client) {
   return choice != "n";
 }
 
-void PolicyView::displayOne(const domain::Policy& p) {
+void PolicyView::displayOne(const domain::Policy& p,
+                            std::string_view client_name) {
   auto opt = [](const std::optional<std::string>& v) -> const std::string& {
     static const std::string kNa = "N/A";
     return v.has_value() ? v.value() : kNa;
   };
 
-  std::cout << "Type:        " << domain::policyTypeToString(p.getPolicyType())
+  std::cout << "Client:      " << client_name << '\n'
+            << "Type:        " << domain::policyTypeToString(p.getPolicyType())
             << '\n'
             << "Status:      "
             << domain::policyStatusToString(p.getPolicyStatus()) << '\n'

@@ -1,5 +1,6 @@
 #include "cli_helper.hpp"
 
+#include <iomanip>
 #include <iostream>
 
 #include "../domain/policy_status.hpp"
@@ -31,11 +32,11 @@ std::optional<std::string> promptOptional(std::string_view prompt) {
 domain::Client selectClient(const std::vector<domain::Client>& clients) {
   for (std::size_t i = 0; i < clients.size(); ++i) {
     std::cout << "  [" << (i + 1) << "] " << clients[i].getFirstName() << " "
-              << clients[i].getLastName() << " — " << clients[i].getEmail()
-              << '\n';
+              << clients[i].getLastName() << " (" << clients[i].getEmail()
+              << ")\n";
   }
   while (true) {
-    std::cout << "Select a client (1-" << clients.size() << "): ";
+    std::cout << "\nSelect a client (1-" << clients.size() << "): ";
     std::string input;
     std::getline(std::cin, input);
     if (!insura::utils::isDigitsOnly(input)) {
@@ -80,14 +81,16 @@ std::optional<domain::Client> resolveClient(service::ClientService& service) {
 domain::Policy selectPolicy(const std::vector<domain::Policy>& policies) {
   for (std::size_t i = 0; i < policies.size(); ++i) {
     std::cout << "  [" << (i + 1) << "] "
+              << std::left << std::setw(10)
               << insura::domain::policyTypeToString(policies[i].getPolicyType())
-              << " — " << policies[i].getPolicyStartDate() << " — "
+              << std::setw(20)
+              << ("since " + policies[i].getPolicyStartDate())
               << insura::domain::policyStatusToString(
                      policies[i].getPolicyStatus())
               << '\n';
   }
   while (true) {
-    std::cout << "Select a policy (1-" << policies.size() << "): ";
+    std::cout << "\nSelect a policy (1-" << policies.size() << "): ";
     std::string input;
     std::getline(std::cin, input);
     if (!insura::utils::isDigitsOnly(input)) {
@@ -103,21 +106,27 @@ domain::Policy selectPolicy(const std::vector<domain::Policy>& policies) {
   }
 }
 
-std::optional<domain::Policy> resolvePolicy(
+std::optional<std::pair<domain::Policy, domain::Client>> resolvePolicy(
     service::PolicyService& policy_service,
     service::ClientService& client_service) {
+
   auto client = resolveClient(client_service);
   if (!client) return std::nullopt;
 
   std::vector<domain::Policy> policies =
       policy_service.searchByClient(client->getUuid());
+
   if (policies.empty()) {
     std::cout << "No policies found for this client.\n";
     return std::nullopt;
   }
 
-  if (policies.size() == 1) return policies.at(0);
-  return selectPolicy(policies);
+  if (policies.size() == 1) return std::pair{policies.at(0), *client};
+
+  std::cout << "\nClient: " << client->getFirstName() << " "
+            << client->getLastName() << " (" << client->getEmail() << ")\n\n";
+
+  return std::pair{selectPolicy(policies), *client};
 }
 
 }  // namespace insura::cli

@@ -1,5 +1,6 @@
 #include "policy_controller.hpp"
 
+#include <cassert>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -282,14 +283,13 @@ void PolicyController::cmdList() {
 }
 
 void PolicyController::cmdSearch() {
-  /* TODO: search vs view distinction — search shows a results list;
-   * view resolves to exactly one policy. */
 
   std::cout << "Search by:\n"
             << "  1. Client\n"
             << "  2. Type\n"
             << "  3. Status\n"
-            << "> ";
+            << "\n> ";
+
   std::string choice;
   std::getline(std::cin, choice);
   choice = insura::domain::strops::trim(choice);
@@ -338,6 +338,12 @@ void PolicyController::cmdSearch() {
   PolicyView::displayAll(results, name_map);
 
   /* Optional drill-down into one entry for full detail */
+  auto clientName = [&](const domain::Policy& p) -> std::string {
+    auto it = name_map.find(p.getClientUuid());
+    assert(it != name_map.end() && "policy references non-existent client");
+    return it->second;
+  };
+
   if (results.size() == 1) {
     std::cout << "\nView details? (Enter to view, n to skip): ";
     std::string input;
@@ -345,7 +351,7 @@ void PolicyController::cmdSearch() {
     input = insura::domain::strops::trim(input);
     if (input != "n") {
       std::cout << '\n';
-      PolicyView::displayOne(results[0]);
+      PolicyView::displayOne(results[0], clientName(results[0]));
     }
   } else {
     std::cout << "\nView details for a specific entry? (1-" << results.size()
@@ -363,28 +369,33 @@ void PolicyController::cmdSearch() {
       std::cout << "  Out of range.\n";
       return;
     }
+    const auto& p = results[static_cast<std::size_t>(idx - 1)];
     std::cout << '\n';
-    PolicyView::displayOne(results[static_cast<std::size_t>(idx - 1)]);
+    PolicyView::displayOne(p, clientName(p));
   }
 }
 
 void PolicyController::cmdView() {
-  auto policy = resolvePolicy(policy_service_, client_service_);
-  if (!policy) return;
+  auto result = resolvePolicy(policy_service_, client_service_);
+  if (!result) return;
+  auto& [policy, client] = *result;
   std::cout << '\n';
-  PolicyView::displayOne(*policy);
+  PolicyView::displayOne(policy,
+                         client.getFirstName() + " " + client.getLastName());
 }
 
 void PolicyController::cmdEdit() {
-  auto policy = resolvePolicy(policy_service_, client_service_);
-  if (!policy) return;
+  auto result = resolvePolicy(policy_service_, client_service_);
+  if (!result) return;
+  auto& [policy, client] = *result;
 
   std::cout << '\n';
-  PolicyView::displayOne(*policy);
-  domain::PolicyData updated = promptPolicyEditData(*policy);
+  PolicyView::displayOne(policy,
+                         client.getFirstName() + " " + client.getLastName());
+  domain::PolicyData updated = promptPolicyEditData(policy);
 
   try {
-    policy_service_.editPolicy(policy->getUuid(), updated);
+    policy_service_.editPolicy(policy.getUuid(), updated);
     std::cout << "\nPolicy updated successfully.\n";
   } catch (const std::invalid_argument& e) {
     std::cout << "\n  Error: " << e.what() << '\n';
@@ -392,11 +403,13 @@ void PolicyController::cmdEdit() {
 }
 
 void PolicyController::cmdDelete() {
-  auto policy = resolvePolicy(policy_service_, client_service_);
-  if (!policy) return;
+  auto result = resolvePolicy(policy_service_, client_service_);
+  if (!result) return;
+  auto& [policy, client] = *result;
 
   std::cout << '\n';
-  PolicyView::displayOne(*policy);
+  PolicyView::displayOne(policy,
+                         client.getFirstName() + " " + client.getLastName());
   std::string choice;
   std::cout << "\nAre you sure? (Y/n): ";
   std::getline(std::cin, choice);
@@ -404,7 +417,7 @@ void PolicyController::cmdDelete() {
   if (choice == "n") return;
 
   try {
-    policy_service_.deletePolicy(policy->getUuid());
+    policy_service_.deletePolicy(policy.getUuid());
     std::cout << "\nPolicy deleted successfully.\n";
   } catch (const std::invalid_argument& e) {
     std::cout << "\n  Error: " << e.what() << '\n';

@@ -2,6 +2,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "../domain/client.hpp"
@@ -45,7 +46,7 @@ std::optional<domain::Client> resolveClient(service::ClientService& service);
  * there are multiple. Not for cmdSearch.
  */
 domain::Policy selectPolicy(const std::vector<domain::Policy>& policies);
-std::optional<domain::Policy> resolvePolicy(
+std::optional<std::pair<domain::Policy, domain::Client>> resolvePolicy(
     service::PolicyService& policy_service,
     service::ClientService& client_service);
 

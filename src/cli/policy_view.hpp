@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -14,7 +15,8 @@ class PolicyView {
       const std::vector<domain::Policy>& policies,
       const std::unordered_map<std::string, std::string>& client_names);
   static bool confirmClient(const domain::Client& client);
-  static void displayOne(const domain::Policy& policy);
+  static void displayOne(const domain::Policy& policy,
+                         std::string_view client_name);
 };
 
 }  // namespace insura::cli
