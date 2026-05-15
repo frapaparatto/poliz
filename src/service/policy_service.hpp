@@ -9,8 +9,7 @@ class PolicyService {
       : policy_repo_(repo) {}
   void addPolicy(const domain::PolicyData& policy_data);
   void deletePolicy(std::string_view policy_uuid);
-  void editPolicy(std::string_view policy_uuid,
-
+  bool editPolicy(std::string_view policy_uuid,
                   const domain::PolicyData& update_policy_data);
   std::vector<domain::Policy> searchByClient(
       std::string_view client_uuid) const;

@@ -52,19 +52,23 @@ void ClientService::deleteClient(std::string_view uuid) {
   repo_.removeClient(uuid);
 }
 
-void ClientService::editClient(std::string_view uuid,
+bool ClientService::editClient(std::string_view uuid,
                                const domain::ClientData& new_client_data) {
   /* Same pattern used in deleteClient */
   auto client = repo_.findByUuid(uuid);
   assert(client.has_value() && "editClient: UUID not found");
   if (!client) throw std::invalid_argument("client not found");
 
+  bool changed = false;
+
   if (!new_client_data.first_name.empty()) {
     client->setFirstName(new_client_data.first_name);
+    changed = true;
   }
 
   if (!new_client_data.last_name.empty()) {
     client->setLastName(new_client_data.last_name);
+    changed = true;
   }
 
   if (!new_client_data.email.empty()) {
@@ -73,38 +77,47 @@ void ClientService::editClient(std::string_view uuid,
       throw std::invalid_argument("email already in use");
     }
     client->setEmail(new_client_data.email);
+    changed = true;
   }
 
   if (new_client_data.phone.has_value()) {
     client->setPhone(new_client_data.phone.value());
+    changed = true;
   }
 
   if (new_client_data.job_title.has_value()) {
     client->setJobTitle(new_client_data.job_title.value());
+    changed = true;
   }
 
   if (new_client_data.company.has_value()) {
     client->setCompany(new_client_data.company.value());
+    changed = true;
   }
 
   if (new_client_data.address.has_value()) {
     client->setAddress(new_client_data.address.value());
+    changed = true;
   }
 
   if (new_client_data.city.has_value()) {
     client->setCity(new_client_data.city.value());
+    changed = true;
   }
 
   if (new_client_data.postal_code.has_value()) {
     client->setPostalCode(new_client_data.postal_code.value());
+    changed = true;
   }
 
   if (new_client_data.lead_status.has_value()) {
     client->setStatus(new_client_data.lead_status.value());
+    changed = true;
   }
 
   if (new_client_data.notes.has_value()) {
     client->setNotes(new_client_data.notes.value());
+    changed = true;
   }
 
   /*
@@ -113,7 +126,8 @@ void ClientService::editClient(std::string_view uuid,
    * copying. One unavoidable copy occurred when findByUuid returned into the
    * optional, everything after is zero-copy.
    */
-  repo_.updateClient(std::move(*client));
+  if (changed) repo_.updateClient(std::move(*client));
+  return changed;
 }
 
 std::vector<domain::Client> ClientService::searchClients(

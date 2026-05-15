@@ -13,7 +13,7 @@ class ClientService {
   void addClient(const domain::ClientData& client_data);
 
   void deleteClient(std::string_view uuid);
-  void editClient(std::string_view uuid,
+  bool editClient(std::string_view uuid,
                   const domain::ClientData& new_client_data);
   std::vector<domain::Client> searchClients(std::string_view search_term) const;
 

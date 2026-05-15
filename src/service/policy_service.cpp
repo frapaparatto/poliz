@@ -83,7 +83,7 @@ void PolicyService::deletePolicy(std::string_view policy_uuid) {
   policy_repo_.removePolicy(policy_uuid);
 }
 
-void PolicyService::editPolicy(std::string_view policy_uuid,
+bool PolicyService::editPolicy(std::string_view policy_uuid,
                                const domain::PolicyData& update_policy_data) {
   auto policy = policy_repo_.findByUuid(policy_uuid);
   assert(policy.has_value() && "editPolicy: UUID not found");
@@ -92,15 +92,20 @@ void PolicyService::editPolicy(std::string_view policy_uuid,
   /* editPolicy only accepts status and notes because all other fields are
    * immutable contract-defining fields per ADR-019. */
 
+  bool changed = false;
+
   if (update_policy_data.policy_status.has_value()) {
     policy->setPolicyStatus(*update_policy_data.policy_status);
+    changed = true;
   }
 
   if (update_policy_data.notes.has_value()) {
     policy->setPolicyNotes(*update_policy_data.notes);
+    changed = true;
   }
 
-  policy_repo_.updatePolicy(std::move(*policy));
+  if (changed) policy_repo_.updatePolicy(std::move(*policy));
+  return changed;
 }
 
 std::vector<domain::Policy> PolicyService::searchByClient(

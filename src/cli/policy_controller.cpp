@@ -414,11 +414,19 @@ void PolicyController::cmdEdit() {
   std::cout << '\n';
   PolicyView::displayOne(policy,
                          client.getFirstName() + " " + client.getLastName());
+  std::string choice;
+  std::cout << "\nEdit this record? (Y/n): ";
+  std::getline(std::cin, choice);
+  if (choice == "n") return;
+
   domain::PolicyData updated = promptPolicyEditData(policy);
 
   try {
-    policy_service_.editPolicy(policy.getUuid(), updated);
-    std::cout << "\nPolicy updated successfully.\n";
+    /* TODO: evaluate whether "No updates made." should stay or just show nothing. */
+    if (policy_service_.editPolicy(policy.getUuid(), updated))
+      std::cout << "\nPolicy updated successfully.\n";
+    else
+      std::cout << "\nNo updates made.\n";
   } catch (const std::invalid_argument& e) {
     std::cout << "\n  Error: " << e.what() << '\n';
   }

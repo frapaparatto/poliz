@@ -427,10 +427,20 @@ void ClientController::cmdEdit() {
   auto client = resolveClient(client_service_);
   if (!client) return;
 
+  std::cout << '\n';
+  ClientView::displayOne(*client);
+  std::string choice;
+  std::cout << "\nEdit this record? (Y/n): ";
+  std::getline(std::cin, choice);
+  if (choice == "n") return;
+
   domain::ClientData updated = promptEditData(*client);
   try {
-    client_service_.editClient(client->getUuid(), updated);
-    std::cout << "\nClient updated successfully.\n";
+    /* TODO: evaluate whether "No updates made." should stay or just show nothing. */
+    if (client_service_.editClient(client->getUuid(), updated))
+      std::cout << "\nClient updated successfully.\n";
+    else
+      std::cout << "\nNo updates made.\n";
   } catch (const std::invalid_argument& e) {
     std::cout << "\n  Error: " << e.what() << "\n";
   }
