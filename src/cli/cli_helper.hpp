@@ -19,6 +19,7 @@ namespace insura::cli {
  */
 std::string promptRequired(std::string_view prompt);
 std::optional<std::string> promptOptional(std::string_view prompt);
+void pause();
 
 /*
  * Client resolution helpers.

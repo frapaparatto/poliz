@@ -7,20 +7,20 @@
 #include "../domain/client_status.hpp"
 #include "../domain/policy_status.hpp"
 #include "../domain/strops.hpp"
+#include "../domain/utils.hpp"
 #include "./client_view.hpp"
 #include "cli_helper.hpp"
-#include "../domain/utils.hpp"
 
 namespace {
 
-constexpr int kPTypeWidth   = 14;
+constexpr int kPTypeWidth = 14;
 constexpr int kPStatusWidth = 14;
 constexpr int kPAmountWidth = 14;
-constexpr int kDateLen      = 10;  // fixed "YYYY-MM-DD"
-constexpr int kArrowWidth   = 3;   // " → " visual width
-const std::string kPolicySep(
-    kPTypeWidth + kPStatusWidth + kPAmountWidth + kDateLen * 2 + kArrowWidth,
-    '-');
+constexpr int kDateLen = 10;    // fixed "YYYY-MM-DD"
+constexpr int kArrowWidth = 3;  // " → " visual width
+const std::string kPolicySep(kPTypeWidth + kPStatusWidth + kPAmountWidth +
+                                 kDateLen * 2 + kArrowWidth,
+                             '-');
 
 std::string fmtAmount(double v) {
   std::ostringstream ss;
@@ -31,24 +31,21 @@ std::string fmtAmount(double v) {
 void displayClientPolicies(
     const std::vector<insura::domain::Policy>& policies) {
   std::cout << std::left << std::setw(kPTypeWidth) << "Type"
-            << std::setw(kPStatusWidth) << "Status"
-            << std::setw(kPAmountWidth) << "Amount"
+            << std::setw(kPStatusWidth) << "Status" << std::setw(kPAmountWidth)
+            << "Amount"
             << "Start → End\n"
             << kPolicySep << '\n';
 
   for (const auto& p : policies) {
-    const std::string amt      = fmtAmount(p.getPolicyAmount());
+    const std::string amt = fmtAmount(p.getPolicyAmount());
     const std::string end_date = p.getPolicyEndDate().value_or("N/A");
-    const std::string range =
-        p.getPolicyStartDate() + " → " + end_date;
+    const std::string range = p.getPolicyStartDate() + " → " + end_date;
 
-    std::cout << std::left
-              << std::setw(kPTypeWidth)
+    std::cout << std::left << std::setw(kPTypeWidth)
               << insura::domain::policyTypeToString(p.getPolicyType())
               << std::setw(kPStatusWidth)
               << insura::domain::policyStatusToString(p.getPolicyStatus())
-              << std::setw(kPAmountWidth + 2) << amt
-              << range << '\n';
+              << std::setw(kPAmountWidth + 2) << amt << range << '\n';
   }
 }
 
@@ -99,11 +96,11 @@ ClientController::ClientController(service::ClientService& client_service,
     : client_service_(client_service),
       repo_(repo),
       policy_service_(policy_service) {
-  commands_["add"]    = [this]() { cmdAdd(); };
+  commands_["add"] = [this]() { cmdAdd(); };
   commands_["search"] = [this]() { cmdSearch(); };
-  commands_["list"]   = [this]() { cmdList(); };
-  commands_["view"]   = [this]() { cmdView(); };
-  commands_["edit"]   = [this]() { cmdEdit(); };
+  commands_["list"] = [this]() { cmdList(); };
+  commands_["view"] = [this]() { cmdView(); };
+  commands_["edit"] = [this]() { cmdEdit(); };
   commands_["delete"] = [this]() { cmdDelete(); };
 }
 
@@ -118,6 +115,8 @@ void ClientController::execute(const std::string& cmd) {
     it->second();
   else
     std::cout << "\nUnknown commands\n";
+
+  pause();
 }
 
 void ClientController::cmdView() {

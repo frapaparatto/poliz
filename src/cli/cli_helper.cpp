@@ -5,9 +5,15 @@
 
 #include "../domain/policy_status.hpp"
 #include "../domain/strops.hpp"
-#include "utils.hpp"
+#include "../domain/utils.hpp"
 
 namespace insura::cli {
+
+void pause() {
+  std::string option;
+  std::cout << "\nPress Enter to continue...";
+  std::getline(std::cin, option);
+}
 
 std::string promptRequired(std::string_view prompt) {
   std::string value;
@@ -60,7 +66,8 @@ std::optional<domain::Client> resolveClient(service::ClientService& service) {
 
     /* TODO: decide whether an empty term should re-prompt or exit. Currently
      * an empty term loops silently; a non-empty term that finds nothing exits
-     * with nullopt. The caller (view/edit/delete) decides how to handle that. */
+     * with nullopt. The caller (view/edit/delete) decides how to handle that.
+     */
     term = insura::domain::strops::trim(term);
     if (term.empty()) continue;
 
@@ -80,11 +87,9 @@ std::optional<domain::Client> resolveClient(service::ClientService& service) {
 
 domain::Policy selectPolicy(const std::vector<domain::Policy>& policies) {
   for (std::size_t i = 0; i < policies.size(); ++i) {
-    std::cout << "  [" << (i + 1) << "] "
-              << std::left << std::setw(10)
+    std::cout << "  [" << (i + 1) << "] " << std::left << std::setw(10)
               << insura::domain::policyTypeToString(policies[i].getPolicyType())
-              << std::setw(20)
-              << ("since " + policies[i].getPolicyStartDate())
+              << std::setw(20) << ("since " + policies[i].getPolicyStartDate())
               << insura::domain::policyStatusToString(
                      policies[i].getPolicyStatus())
               << '\n';
@@ -109,7 +114,6 @@ domain::Policy selectPolicy(const std::vector<domain::Policy>& policies) {
 std::optional<std::pair<domain::Policy, domain::Client>> resolvePolicy(
     service::PolicyService& policy_service,
     service::ClientService& client_service) {
-
   auto client = resolveClient(client_service);
   if (!client) return std::nullopt;
 

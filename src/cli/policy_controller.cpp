@@ -159,6 +159,8 @@ void PolicyController::execute(const std::string& cmd) {
     it->second();
   else
     std::cout << "\nUnknown commands\n";
+
+  pause();
 }
 
 void PolicyController::save() { policy_repo_.save(); }
