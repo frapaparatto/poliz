@@ -71,6 +71,7 @@ Testing/
 # personal files/directories
 docs/personal/
 insurapro_data/
+CLAUDE.md
 
 # macos files
 .DS_Store

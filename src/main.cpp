@@ -168,12 +168,12 @@ CrmRepositories cmdLoad(const CrmConfig& config) {
     dirpath = insura::domain::strops::trim(dirpath);
 
     if (dirpath.empty()) {
-      std::cout << "  Directory path cannot be empty.\n";
+      std::cout << "Directory path cannot be empty.\n";
       continue;
     }
 
     if (!std::filesystem::exists(dirpath)) {
-      std::cout << "  Directory doesn't exist.\n\n"
+      std::cout << "Directory doesn't exist.\n\n"
                 << "  " << std::left << std::setw(kInitWidth) << "retry"
                 << "enter a different path\n"
                 << "  " << std::setw(kInitWidth) << "new"
@@ -182,27 +182,30 @@ CrmRepositories cmdLoad(const CrmConfig& config) {
                 << "back to main menu\n"
                 << "  " << std::setw(kInitWidth) << "exit"
                 << "close the program\n\n";
-      std::string choice;
-      std::cout << "> ";
-      std::getline(std::cin, choice);
-      choice = insura::domain::strops::trim(choice);
 
-      if (choice == "retry") continue;
-      if (choice == "new") {
-        std::filesystem::create_directory(dirpath);
-        std::string client_path = dirpath + "/" + config.clients_filename;
-        std::string policy_path = dirpath + "/" + config.policies_filename;
+      while (true) {
+        std::string choice;
+        std::cout << "> ";
+        std::getline(std::cin, choice);
+        choice = insura::domain::strops::trim(choice);
 
-        CrmRepositories repositories;
-        repositories.client_repo =
-            std::make_unique<insura::data::CsvClientRepository>(client_path);
-        repositories.policy_repo =
-            std::make_unique<insura::data::CsvPolicyRepository>(policy_path);
-        return repositories;
+        if (choice == "retry") break;
+        if (choice == "new") {
+          std::filesystem::create_directory(dirpath);
+          std::string client_path = dirpath + "/" + config.clients_filename;
+          std::string policy_path = dirpath + "/" + config.policies_filename;
+
+          CrmRepositories repositories;
+          repositories.client_repo =
+              std::make_unique<insura::data::CsvClientRepository>(client_path);
+          repositories.policy_repo =
+              std::make_unique<insura::data::CsvPolicyRepository>(policy_path);
+          return repositories;
+        }
+        if (choice == "back") return {};
+        if (choice == "exit") cmdExit();
+        std::cout << "  Invalid option.\n";
       }
-      if (choice == "back") return {};
-      if (choice == "exit") cmdExit();
-      std::cout << "  Invalid option.\n";
       continue;
     }
 
