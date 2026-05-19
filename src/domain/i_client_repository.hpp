@@ -78,7 +78,7 @@ class IClientRepository {
   virtual void updateClient(Client updated) = 0;
   virtual std::optional<Client> findByUuid(std::string_view uuid) const = 0;
   virtual std::optional<Client> findByEmail(std::string_view email) const = 0;
-  virtual const std::vector<Client>& findAll() const = 0;
+  virtual std::vector<Client> findAll() const = 0;
   virtual ~IClientRepository() = default;
 };
 

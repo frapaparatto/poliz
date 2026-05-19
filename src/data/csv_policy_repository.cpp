@@ -16,11 +16,13 @@ CsvPolicyRepository::CsvPolicyRepository(std::string filepath)
     : filepath_(std::move(filepath)) {}
 
 void CsvPolicyRepository::insertPolicy(domain::Policy policy) {
+  std::lock_guard<std::mutex> lock(mtx_);
   policies_.push_back(std::move(policy));
   dirty_ = true;
 }
 
 void CsvPolicyRepository::removePolicy(std::string_view uuid) {
+  std::lock_guard<std::mutex> lock(mtx_);
   auto it = std::remove_if(
       policies_.begin(), policies_.end(),
       [uuid](const domain::Policy& p) { return p.getUuid() == uuid; });
@@ -32,6 +34,7 @@ void CsvPolicyRepository::removePolicy(std::string_view uuid) {
 
 std::optional<domain::Policy> CsvPolicyRepository::findByUuid(
     std::string_view uuid) const {
+  std::lock_guard<std::mutex> lock(mtx_);
   auto it = std::find_if(
       policies_.begin(), policies_.end(),
       [uuid](const domain::Policy& p) { return p.getUuid() == uuid; });
@@ -42,6 +45,7 @@ std::optional<domain::Policy> CsvPolicyRepository::findByUuid(
 
 std::vector<domain::Policy> CsvPolicyRepository::findByClientUuid(
     std::string_view client_uuid) const {
+  std::lock_guard<std::mutex> lock(mtx_);
   std::vector<domain::Policy> found;
 
   std::copy_if(policies_.begin(), policies_.end(), std::back_inserter(found),
@@ -52,12 +56,20 @@ std::vector<domain::Policy> CsvPolicyRepository::findByClientUuid(
   return found;
 }
 
-const std::vector<domain::Policy>& CsvPolicyRepository::findAll() const {
+/* Returns by value, not by reference. Returning a reference would
+ * allow the caller to hold a pointer into the internal vector after
+ * the mutex is released. Any write from another thread that triggers
+ * reallocation would invalidate that pointer (undefined behavior).
+ * The copy is made while the lock is held, so the caller gets a
+ * consistent snapshot. */
+std::vector<domain::Policy> CsvPolicyRepository::findAll() const {
+  std::lock_guard<std::mutex> lock(mtx_);
   return policies_;
 }
 
 std::vector<domain::Policy> CsvPolicyRepository::findWhere(
     const domain::PolicyFilter& filter) const {
+  std::lock_guard<std::mutex> lock(mtx_);
   std::vector<domain::Policy> found;
 
   std::copy_if(
@@ -77,6 +89,7 @@ std::vector<domain::Policy> CsvPolicyRepository::findWhere(
 }
 
 void CsvPolicyRepository::updatePolicy(domain::Policy updated) {
+  std::lock_guard<std::mutex> lock(mtx_);
   auto it = std::find_if(policies_.begin(), policies_.end(),
                          [&updated](const domain::Policy& p) {
                            return p.getUuid() == updated.getUuid();
@@ -139,6 +152,7 @@ domain::Policy CsvPolicyRepository::deserialize(const std::string& line) const {
  */
 
 void CsvPolicyRepository::load() {
+  std::lock_guard<std::mutex> lock(mtx_);
   std::vector<domain::Policy> tmp_policies;
 
   if (std::filesystem::exists(filepath_)) {
@@ -156,6 +170,7 @@ void CsvPolicyRepository::load() {
 }
 
 void CsvPolicyRepository::save() const {
+  std::lock_guard<std::mutex> lock(mtx_);
   std::string tmp = filepath_ + ".tmp";
   {
     /* Scoped because destructor needs to run */

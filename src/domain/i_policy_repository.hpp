@@ -42,7 +42,7 @@ class IPolicyRepository {
       std::string_view client_uuid) const = 0;
   virtual std::vector<Policy> findWhere(
       const PolicyFilter& filter) const = 0;
-  virtual const std::vector<Policy>& findAll() const = 0;
+  virtual std::vector<Policy> findAll() const = 0;
 
   virtual ~IPolicyRepository() = default;
 };

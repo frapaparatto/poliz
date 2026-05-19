@@ -1,4 +1,6 @@
 #pragma once
+#include <mutex>
+
 #include "../domain/client.hpp"
 #include "../domain/i_client_repository.hpp"
 
@@ -15,9 +17,10 @@ class CsvClientRepository : public domain::IClientRepository {
       std::string_view uuid) const override;
   std::optional<domain::Client> findByEmail(
       std::string_view email) const override;
-  const std::vector<domain::Client>& findAll() const override;
+  std::vector<domain::Client> findAll() const override;
 
  private:
+  mutable std::mutex mtx_;
   void save() const override;
   bool isDirty() const override { return dirty_; }
   std::string serialize(const domain::Client& c) const;
