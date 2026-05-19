@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <filesystem>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
@@ -23,11 +24,13 @@ CsvClientRepository::CsvClientRepository(std::string filepath)
  * from NRVO, so return-by-value also costs nothing.
  */
 void CsvClientRepository::insertClient(domain::Client client) {
+  std::lock_guard<std::mutex> lock(mtx_);
   clients_.push_back(std::move(client));
   dirty_ = true;
 }
 
 void CsvClientRepository::removeClient(std::string_view uuid) {
+  std::lock_guard<std::mutex> lock(mtx_);
   auto it = std::remove_if(clients_.begin(), clients_.end(),
                            [uuid](const domain::Client& client) {
                              return client.getUuid() == uuid;
@@ -39,6 +42,7 @@ void CsvClientRepository::removeClient(std::string_view uuid) {
 
 std::optional<domain::Client> CsvClientRepository::findByUuid(
     std::string_view uuid) const {
+  std::lock_guard<std::mutex> lock(mtx_);
   auto it = std::find_if(
       clients_.begin(), clients_.end(),
       [uuid](const domain::Client& c) { return c.getUuid() == uuid; });
@@ -49,6 +53,7 @@ std::optional<domain::Client> CsvClientRepository::findByUuid(
 
 std::optional<domain::Client> CsvClientRepository::findByEmail(
     std::string_view email) const {
+  std::lock_guard<std::mutex> lock(mtx_);
   auto it = std::find_if(
       clients_.begin(), clients_.end(),
       [email](const domain::Client& c) { return c.getEmail() == email; });
@@ -57,11 +62,19 @@ std::optional<domain::Client> CsvClientRepository::findByEmail(
   return *it;
 }
 
-const std::vector<domain::Client>& CsvClientRepository::findAll() const {
+/* Returns by value, not by reference. Returning a reference would
+ * allow the caller to hold a pointer into the internal vector after
+ * the mutex is released. Any write from another thread that triggers
+ * reallocation would invalidate that pointer (undefined behavior).
+ * The copy is made while the lock is held, so the caller gets a
+ * consistent snapshot. */
+std::vector<domain::Client> CsvClientRepository::findAll() const {
+  std::lock_guard<std::mutex> lock(mtx_);
   return clients_;
 }
 
 void CsvClientRepository::updateClient(domain::Client updated) {
+  std::lock_guard<std::mutex> lock(mtx_);
   auto it = std::find_if(clients_.begin(), clients_.end(),
                          [&updated](const domain::Client& c) {
                            return c.getUuid() == updated.getUuid();
@@ -74,6 +87,7 @@ void CsvClientRepository::updateClient(domain::Client updated) {
 }
 
 void CsvClientRepository::load() {
+  std::lock_guard<std::mutex> lock(mtx_);
   std::vector<domain::Client> tmp_clients;
 
   if (std::filesystem::exists(filepath_)) {
@@ -93,6 +107,7 @@ void CsvClientRepository::load() {
 }
 
 void CsvClientRepository::save() const {
+  std::lock_guard<std::mutex> lock(mtx_);
   std::string tmp = filepath_ + ".tmp";
   {
     FileHandler out(tmp, std::ios::out);

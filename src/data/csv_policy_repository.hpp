@@ -1,4 +1,6 @@
 #pragma once
+#include <mutex>
+
 #include "../domain/i_policy_repository.hpp"
 #include "../domain/policy.hpp"
 
@@ -19,7 +21,7 @@ class CsvPolicyRepository : public domain::IPolicyRepository {
   std::vector<domain::Policy> findWhere(
       const domain::PolicyFilter& filter) const override;
 
-  const std::vector<domain::Policy>& findAll() const override;
+  std::vector<domain::Policy> findAll() const override;
 
  private:
   void save() const override;
@@ -30,6 +32,7 @@ class CsvPolicyRepository : public domain::IPolicyRepository {
   std::vector<domain::Policy> policies_;
   std::string filepath_;
   mutable bool dirty_ = false;
+  mutable std::mutex mtx_;
 };
 
 }  // namespace insura::data

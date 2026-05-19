@@ -4,6 +4,7 @@
 #include <cctype>
 #include <chrono>
 #include <ctime>
+#include <mutex>
 #include <iomanip>
 #include <random>
 #include <regex>
@@ -38,10 +39,12 @@ std::optional<std::string> stringToOptional(const std::string& s) {
 }
 
 std::string generateUuid() {
+  static std::mutex uuid_mtx;
   static std::random_device rd;
   static std::mt19937 mt(rd());
   static std::uniform_int_distribution<> dist(0, 15);
   static std::uniform_int_distribution<> dist2(8, 11);
+  std::lock_guard<std::mutex> lock(uuid_mtx);
 
   std::stringstream ss;
   int i;
