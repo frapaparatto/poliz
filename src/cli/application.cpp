@@ -3,13 +3,15 @@
 #include <iostream>
 
 #include "../domain/strops.hpp"
+#include "../service/auto_save_service.hpp"
 #include "client_controller.hpp"
 #include "menu.hpp"
 #include "policy_controller.hpp"
 
 namespace insura::cli {
 
-Application::Application(service::ClientService& client_service,
+Application::Application(bool autosave_enabled, int autosave_interval,
+                         service::ClientService& client_service,
                          domain::IClientRepository& client_repo,
                          service::PolicyService& policy_service,
                          domain::IPolicyRepository& policy_repo) {
@@ -17,25 +19,33 @@ Application::Application(service::ClientService& client_service,
       client_service, client_repo, policy_service);
   controllers_["policies"] = std::make_unique<PolicyController>(
       policy_service, policy_repo, client_service, client_repo);
+
+  if (autosave_enabled) {
+    autosave_.emplace([this] { cmdSave(true); }, autosave_interval);
+  }
 }
 
 void Application::cmdClear() { std::cout << "\033[2J\033[H"; }
 
-void Application::cmdSave() {
+void Application::cmdSave(bool silent) {
   try {
     for (auto& [name, controller] : controllers_) {
       controller->save();
     }
-    std::cout << "  Data saved correctly.\n";
+    if (!silent) std::cout << "Data saved correctly.\n";
   } catch (const std::exception& e) {
-    std::cerr << "  Error: " << e.what() << "\n";
+    std::cerr << "Error: " << e.what() << "\n";
   }
 }
 
 void Application::cmdExit() {
+  if (autosave_) autosave_->stop();
   bool any_dirty = false;
   for (auto& [name, controller] : controllers_) {
-    if (controller->isDirty()) { any_dirty = true; break; }
+    if (controller->isDirty()) {
+      any_dirty = true;
+      break;
+    }
   }
 
   if (any_dirty) {
@@ -43,7 +53,7 @@ void Application::cmdExit() {
     std::cout << "Save before exiting? (Y/n): ";
     std::getline(std::cin, choice);
     choice = domain::strops::trim(choice);
-    if (choice != "n") cmdSave();
+    if (choice != "n") cmdSave(false);
   }
 
   std::cout << "Closing session.\n";
@@ -52,7 +62,7 @@ void Application::cmdExit() {
 
 bool Application::handleAppCmds(const std::string& cmd) {
   if (cmd == "save") {
-    cmdSave();
+    cmdSave(false);
     return true;
   } else if (cmd == "exit") {
     cmdExit();

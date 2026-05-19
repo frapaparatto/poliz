@@ -9,6 +9,7 @@
 #include "./data/file_handle.hpp"
 #include "./domain/strops.hpp"
 #include "./domain/utils.hpp"
+#include "./service/auto_save_service.hpp"
 #include "./service/client_service.hpp"
 #include "./service/policy_service.hpp"
 
@@ -264,8 +265,10 @@ int main() {
   insura::service::PolicyService policy_service(*repos.policy_repo);
   insura::service::ClientService client_service(*repos.client_repo,
                                                 *repos.policy_repo);
-  insura::cli::Application app(client_service, *repos.client_repo,
-                               policy_service, *repos.policy_repo);
+
+  insura::cli::Application app(
+      config.autosave_enabled, config.autosave_interval_seconds, client_service,
+      *repos.client_repo, policy_service, *repos.policy_repo);
 
   app.run();
   return 0;

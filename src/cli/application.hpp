@@ -5,6 +5,7 @@
 
 #include "../domain/i_client_repository.hpp"
 #include "../domain/i_policy_repository.hpp"
+#include "../service/auto_save_service.hpp"
 #include "../service/client_service.hpp"
 #include "../service/policy_service.hpp"
 #include "i_entity_controller.hpp"
@@ -13,7 +14,8 @@ namespace insura::cli {
 
 class Application {
  public:
-  Application(service::ClientService& client_service,
+  Application(bool autosave_enabled, int autosave_interval,
+              service::ClientService& client_service,
               domain::IClientRepository& client_repo,
               service::PolicyService& policy_service,
               domain::IPolicyRepository& policy_repo);
@@ -21,13 +23,14 @@ class Application {
 
  private:
   bool running_ = false;
+  std::optional<service::AutoSaveService> autosave_;
   std::unordered_map<std::string, std::unique_ptr<IEntityController>>
       controllers_;
   IEntityController* active_controller_ = nullptr;
   bool handleAppCmds(const std::string& option);
 
   /* Application-level commands */
-  void cmdSave();
+  void cmdSave(bool silent);
   void cmdExit();
   void cmdClear();
 };
