@@ -71,11 +71,6 @@ class Policy {
   PolicyType policy_type_;
   std::string start_date_;
   std::optional<std::string> end_date_;
-  /* TODO (display): decide whether to format amount as a string with currency
-   * symbol (e.g. "1200.00 EUR") or keep as double and label the column
-   * "Amount (EUR)". Formatting on the fly via a utils helper is the best option
-   * as it keeps the domain clean. Evaluate the cost of this operation for N
-   * policies before implementing. */
   double amount_;
   PolicyStatus policy_status_;
   std::optional<std::string> notes_;
