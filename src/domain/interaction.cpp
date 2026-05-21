@@ -36,9 +36,13 @@ Interaction::Interaction(std::string uuid, std::string client_uuid,
 
 const std::string& Interaction::getUuid() const { return uuid_; }
 const std::string& Interaction::getClientUuid() const { return client_uuid_; }
-Interaction::InteractionType Interaction::getType() const { return interaction_type_; }
+Interaction::InteractionType Interaction::getType() const {
+  return interaction_type_;
+}
 const std::string& Interaction::getDate() const { return date_; }
-const std::optional<std::string>& Interaction::getNotes() const { return notes_; }
+const std::optional<std::string>& Interaction::getNotes() const {
+  return notes_;
+}
 const std::string& Interaction::getCreatedAt() const { return created_at_; }
 const std::string& Interaction::getUpdatedAt() const { return updated_at_; }
 
@@ -49,7 +53,8 @@ void Interaction::setType(InteractionType type) {
 
 void Interaction::setDate(const std::string& date) {
   if (date.empty()) throw std::invalid_argument("date cannot be empty");
-  if (!utils::date::isValidDate(date)) throw std::invalid_argument("invalid date");
+  if (!utils::date::isValidDate(date))
+    throw std::invalid_argument("invalid date");
   date_ = date;
   updated_at_ = utils::currentTimestamp();
 }
@@ -58,8 +63,6 @@ void Interaction::setNotes(const std::string& notes) {
   notes_ = notes;
   updated_at_ = utils::currentTimestamp();
 }
-
-/* ------------ CONTRACT ------------------- */
 
 Contract::Contract(std::string client_uuid, std::string date, double value,
                    std::string product_name, std::string signed_date,
@@ -100,7 +103,13 @@ Contract::Contract(std::string uuid, std::string client_uuid, std::string date,
 double Contract::getValue() const { return value_; }
 const std::string& Contract::getProductName() const { return product_name_; }
 const std::string& Contract::getSignedDate() const { return signed_date_; }
-Contract::ContractStatus Contract::getStatus() const { return contract_status_; }
+Contract::ContractStatus Contract::getStatus() const {
+  return contract_status_;
+}
+
+std::unique_ptr<Interaction> Contract::clone() const {
+  return std::make_unique<Contract>(*this);
+}
 
 void Contract::setValue(double value) {
   if (value <= 0)
@@ -129,8 +138,6 @@ void Contract::setStatus(ContractStatus status) {
   contract_status_ = status;
   updated_at_ = utils::currentTimestamp();
 }
-
-/* ------------ APPOINTMENTS ------------------- */
 
 Appointment::Appointment(std::string client_uuid, std::string date,
                          std::string time, int duration,
@@ -164,7 +171,9 @@ Appointment::Appointment(std::string uuid, std::string client_uuid,
 
 const std::string& Appointment::getAppointmentTime() const { return time_; }
 int Appointment::getDuration() const { return duration_; }
-const std::optional<std::string>& Appointment::getAppointmentReport() const { return report_; }
+const std::optional<std::string>& Appointment::getAppointmentReport() const {
+  return report_;
+}
 
 void Appointment::setTime(const std::string& time) {
   if (time.empty())
@@ -184,6 +193,10 @@ void Appointment::setDuration(int duration) {
 void Appointment::setReport(const std::string& report) {
   report_ = report;
   updated_at_ = utils::currentTimestamp();
+}
+
+std::unique_ptr<Interaction> Appointment::clone() const {
+  return std::make_unique<Appointment>(*this);
 }
 
 }  // namespace insura::domain

@@ -422,7 +422,8 @@ void PolicyController::cmdEdit() {
   domain::PolicyData updated = promptPolicyEditData(policy);
 
   try {
-    /* TODO: evaluate whether "No updates made." should stay or just show nothing. */
+    /* TODO: evaluate whether "No updates made." should stay or just show
+     * nothing. */
     if (policy_service_.editPolicy(policy.getUuid(), updated))
       std::cout << "\nPolicy updated successfully.\n";
     else

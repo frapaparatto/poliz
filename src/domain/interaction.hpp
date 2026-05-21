@@ -19,6 +19,7 @@ class Interaction {
               std::string created_at, std::string updated_at);
   virtual ~Interaction() = default;
 
+  virtual std::unique_ptr<Interaction> clone() const = 0;
   const std::string& getUuid() const;
   const std::string& getClientUuid() const;
   InteractionType getType() const;
@@ -55,6 +56,7 @@ class Appointment : public Interaction {
               std::optional<std::string> notes, std::string created_at,
               std::string updated_at);
 
+  std::unique_ptr<Interaction> clone() const override;
   const std::string& getAppointmentTime() const;
   int getDuration() const;
   const std::optional<std::string>& getAppointmentReport() const;
@@ -94,6 +96,7 @@ class Contract : public Interaction {
            std::string created_at, std::string updated_at);
 
   double getValue() const;
+  std::unique_ptr<Interaction> clone() const override;
   const std::string& getProductName() const;
   const std::string& getSignedDate() const;
   ContractStatus getStatus() const;
