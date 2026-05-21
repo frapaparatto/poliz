@@ -5,11 +5,11 @@
 
 #include "./cli/application.hpp"
 #include "./data/csv_client_repository.hpp"
+#include "./data/csv_interaction_repository.hpp"
 #include "./data/csv_policy_repository.hpp"
 #include "./data/file_handle.hpp"
 #include "./domain/strops.hpp"
 #include "./domain/utils.hpp"
-#include "./service/auto_save_service.hpp"
 #include "./service/client_service.hpp"
 #include "./service/policy_service.hpp"
 
@@ -34,11 +34,12 @@
 namespace {
 
 struct CrmConfig {
+  bool autosave_enabled = true;
+  int autosave_interval_seconds = 60;
   std::string default_directory = "insurapro_data";
   std::string clients_filename = "clients.csv";
   std::string policies_filename = "policies.csv";
-  bool autosave_enabled = true;
-  int autosave_interval_seconds = 60;
+  std::string interactions_filename = "interactions.csv";
 };
 
 static constexpr const char* config_path = "insurapro.conf";
@@ -63,6 +64,16 @@ void applyConfigLine(CrmConfig& config, const std::string& key,
       return;
     }
     config.policies_filename = value;
+
+  } else if (key == "interactions_filename") {
+    if (!insura::utils::isValidCsvFile(value)) {
+      std::cerr << "\nConfig warning [" << key << "]: '" << value
+                << "' is not a valid CSV filename. Default used: "
+                << config.interactions_filename << "\n";
+      return;
+    }
+    config.interactions_filename = value;
+
   } else if (key == "autosave_enabled") {
     if (value != "true" && value != "false") {
       auto default_value = config.autosave_enabled ? "true" : "false";
@@ -133,6 +144,7 @@ void displayMainMenu() {
 struct CrmRepositories {
   std::unique_ptr<insura::data::CsvClientRepository> client_repo;
   std::unique_ptr<insura::data::CsvPolicyRepository> policy_repo;
+  std::unique_ptr<insura::data::CsvInteractionRepository> interactions_repo;
 };
 
 void cmdExit() { std::exit(0); }
@@ -151,12 +163,16 @@ CrmRepositories cmdNew(const CrmConfig& config) {
 
   std::string client_path = dirpath + "/" + config.clients_filename;
   std::string policy_path = dirpath + "/" + config.policies_filename;
+  std::string interaction_path = dirpath + "/" + config.interactions_filename;
 
   CrmRepositories repositories;
   repositories.client_repo =
       std::make_unique<insura::data::CsvClientRepository>(client_path);
   repositories.policy_repo =
       std::make_unique<insura::data::CsvPolicyRepository>(policy_path);
+  repositories.interactions_repo =
+      std::make_unique<insura::data::CsvInteractionRepository>(
+          interaction_path);
 
   return repositories;
 }
@@ -195,12 +211,17 @@ CrmRepositories cmdLoad(const CrmConfig& config) {
           std::filesystem::create_directory(dirpath);
           std::string client_path = dirpath + "/" + config.clients_filename;
           std::string policy_path = dirpath + "/" + config.policies_filename;
+          std::string interaction_path =
+              dirpath + "/" + config.interactions_filename;
 
           CrmRepositories repositories;
           repositories.client_repo =
               std::make_unique<insura::data::CsvClientRepository>(client_path);
           repositories.policy_repo =
               std::make_unique<insura::data::CsvPolicyRepository>(policy_path);
+          repositories.interactions_repo =
+              std::make_unique<insura::data::CsvInteractionRepository>(
+                  interaction_path);
           return repositories;
         }
         if (choice == "back") return {};
@@ -212,12 +233,17 @@ CrmRepositories cmdLoad(const CrmConfig& config) {
 
     std::string client_path = dirpath + "/" + config.clients_filename;
     std::string policy_path = dirpath + "/" + config.policies_filename;
+    std::string interactions_path =
+        dirpath + "/" + config.interactions_filename;
 
     CrmRepositories repositories;
     repositories.client_repo =
         std::make_unique<insura::data::CsvClientRepository>(client_path);
     repositories.policy_repo =
         std::make_unique<insura::data::CsvPolicyRepository>(policy_path);
+    repositories.interactions_repo =
+        std::make_unique<insura::data::CsvInteractionRepository>(
+            interactions_path);
 
     try {
       repositories.client_repo->load();
@@ -263,8 +289,8 @@ int main() {
   }
 
   insura::service::PolicyService policy_service(*repos.policy_repo);
-  insura::service::ClientService client_service(*repos.client_repo,
-                                                *repos.policy_repo);
+  insura::service::ClientService client_service(
+      *repos.client_repo, *repos.policy_repo, *repos.interactions_repo);
 
   insura::cli::Application app(
       config.autosave_enabled, config.autosave_interval_seconds, client_service,
