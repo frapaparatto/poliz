@@ -66,6 +66,7 @@ void Interaction::setNotes(const std::string& notes) {
 
 Contract::Contract(std::string client_uuid, std::string date, double value,
                    std::string product_name, std::string signed_date,
+                   std::optional<std::string> expired_date,
                    ContractStatus status, std::optional<std::string> notes)
     : Interaction(std::move(client_uuid), InteractionType::CONTRACT, date,
                   notes) {
@@ -84,25 +85,31 @@ Contract::Contract(std::string client_uuid, std::string date, double value,
   value_ = value;
   product_name_ = std::move(product_name);
   signed_date_ = std::move(signed_date);
+  expired_date_ = std::move(expired_date);
   contract_status_ = status;
 }
 
 Contract::Contract(std::string uuid, std::string client_uuid, std::string date,
                    double value, std::string product_name,
-                   std::string signed_date, ContractStatus status,
-                   std::optional<std::string> notes, std::string created_at,
-                   std::string updated_at)
+                   std::string signed_date,
+                   std::optional<std::string> expired_date,
+                   ContractStatus status, std::optional<std::string> notes,
+                   std::string created_at, std::string updated_at)
     : Interaction(std::move(uuid), std::move(client_uuid),
                   InteractionType::CONTRACT, std::move(date), std::move(notes),
                   std::move(created_at), std::move(updated_at)),
       value_(value),
       product_name_(std::move(product_name)),
       signed_date_(std::move(signed_date)),
+      expired_date_(std::move(expired_date)),
       contract_status_(status) {}
 
 double Contract::getValue() const { return value_; }
 const std::string& Contract::getProductName() const { return product_name_; }
 const std::string& Contract::getSignedDate() const { return signed_date_; }
+const std::optional<std::string>& Contract::getExpiredDate() const {
+  return expired_date_;
+}
 Contract::ContractStatus Contract::getStatus() const {
   return contract_status_;
 }
@@ -131,6 +138,14 @@ void Contract::setSignedDate(const std::string& signed_date) {
   if (!utils::date::isValidDate(signed_date))
     throw std::invalid_argument("invalid signed date");
   signed_date_ = signed_date;
+  updated_at_ = utils::currentTimestamp();
+}
+
+void Contract::setExpiredDate(const std::string& expired_date) {
+  if (!expired_date.empty() && !utils::date::isValidDate(expired_date))
+    throw std::invalid_argument("invalid expired date");
+  expired_date_ = expired_date.empty() ? std::nullopt
+                                       : std::optional<std::string>{expired_date};
   updated_at_ = utils::currentTimestamp();
 }
 

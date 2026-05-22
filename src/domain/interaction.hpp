@@ -87,30 +87,35 @@ class Contract : public Interaction {
 
   Contract(std::string client_uuid, std::string date, double value,
            std::string product_name, std::string signed_date,
-           ContractStatus status, std::optional<std::string> notes);
+           std::optional<std::string> expired_date, ContractStatus status,
+           std::optional<std::string> notes);
 
   /* load constructor */
   Contract(std::string uuid, std::string client_uuid, std::string date,
            double value, std::string product_name, std::string signed_date,
-           ContractStatus status, std::optional<std::string> notes,
-           std::string created_at, std::string updated_at);
+           std::optional<std::string> expired_date, ContractStatus status,
+           std::optional<std::string> notes, std::string created_at,
+           std::string updated_at);
 
   double getValue() const;
   std::unique_ptr<Interaction> clone() const override;
   const std::string& getProductName() const;
   const std::string& getSignedDate() const;
+  const std::optional<std::string>& getExpiredDate() const;
   ContractStatus getStatus() const;
   void setValue(double value);
   void setProductName(const std::string& product_name);
   void setSignedDate(const std::string& signed_date);
+  void setExpiredDate(const std::string& expired_date);
   void setStatus(ContractStatus status);
 
  private:
   double value_;
   std::string product_name_;
   std::string signed_date_;
-  /* evaluate an expired date attribute and use the same
-   * mechanism as for policies for calculating it */
+  /* TODO: candidate for auto-calculation: signed_date + contract duration;
+   * revisit when refactoring contract lifecycle */
+  std::optional<std::string> expired_date_;
   ContractStatus contract_status_;
 };
 
