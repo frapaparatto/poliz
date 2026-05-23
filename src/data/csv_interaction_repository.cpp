@@ -143,6 +143,7 @@ std::string CsvInteractionRepository::serializeContract(
   ss << std::to_string(c.getValue()) << ",";
   ss << c.getProductName() << ",";
   ss << c.getSignedDate() << ",";
+  ss << c.getExpiredDate().value_or("") << ",";
   ss << domain::contractStatusToString(c.getStatus()) << ",";
   ss << c.getNotes().value_or("") << ",";
   ss << c.getCreatedAt() << ",";
@@ -197,12 +198,13 @@ std::unique_ptr<domain::Interaction> CsvInteractionRepository::deserialize(
         utils::stringToOptional(report), utils::stringToOptional(notes),
         created_at, updated_at);
   } else {
-    std::string date, value_str, product_name, signed_date,
+    std::string date, value_str, product_name, signed_date, expired_date,
         contract_status_string, notes, created_at, updated_at;
     std::getline(ss, date, ',');
     std::getline(ss, value_str, ',');
     std::getline(ss, product_name, ',');
     std::getline(ss, signed_date, ',');
+    std::getline(ss, expired_date, ',');
     std::getline(ss, contract_status_string, ',');
     std::getline(ss, notes, ',');
     std::getline(ss, created_at, ',');
@@ -217,6 +219,7 @@ std::unique_ptr<domain::Interaction> CsvInteractionRepository::deserialize(
 
     return std::make_unique<domain::Contract>(
         uuid, client_uuid, date, value, product_name, signed_date,
+        utils::stringToOptional(expired_date),
         domain::contractStatusFromString(contract_status_string),
         utils::stringToOptional(notes), created_at, updated_at);
   }

@@ -21,6 +21,7 @@ PRIVATE
   application.cpp
   client_controller.cpp
   policy_controller.cpp
+  interaction_controller.cpp
 )
 
 

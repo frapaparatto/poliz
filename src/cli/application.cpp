@@ -5,6 +5,7 @@
 #include "../domain/strops.hpp"
 #include "../service/auto_save_service.hpp"
 #include "client_controller.hpp"
+#include "interaction_controller.hpp"
 #include "menu.hpp"
 #include "policy_controller.hpp"
 
@@ -14,11 +15,15 @@ Application::Application(bool autosave_enabled, int autosave_interval,
                          service::ClientService& client_service,
                          domain::IClientRepository& client_repo,
                          service::PolicyService& policy_service,
-                         domain::IPolicyRepository& policy_repo) {
+                         domain::IPolicyRepository& policy_repo,
+                         service::InteractionService& interaction_service,
+                         domain::IInteractionRepository& interaction_repo) {
   controllers_["clients"] = std::make_unique<ClientController>(
       client_service, client_repo, policy_service);
   controllers_["policies"] = std::make_unique<PolicyController>(
       policy_service, policy_repo, client_service, client_repo);
+  controllers_["interactions"] = std::make_unique<InteractionController>(
+      interaction_service, interaction_repo, client_service, client_repo);
 
   if (autosave_enabled) {
     autosave_.emplace([this] { cmdSave(true); }, autosave_interval);

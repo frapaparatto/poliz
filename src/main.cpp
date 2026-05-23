@@ -12,6 +12,7 @@
 #include "./domain/utils.hpp"
 #include "./service/client_service.hpp"
 #include "./service/policy_service.hpp"
+#include "service/interaction_service.hpp"
 
 // TODO END OF THE PROJECT: order all notes in docs/personal becasue lots of
 // them needs to be used together with daily notes e.g. all pattern could became
@@ -226,7 +227,7 @@ CrmRepositories cmdLoad(const CrmConfig& config) {
         }
         if (choice == "back") return {};
         if (choice == "exit") cmdExit();
-        std::cout << "  Invalid option.\n";
+        std::cout << "Invalid option.\n";
       }
       continue;
     }
@@ -248,15 +249,23 @@ CrmRepositories cmdLoad(const CrmConfig& config) {
     try {
       repositories.client_repo->load();
     } catch (const std::exception& e) {
-      std::cerr << "  Warning: could not load clients: " << e.what() << '\n';
-      std::cout << "  Starting with empty client list.\n";
+      std::cerr << "[Warning]: could not load clients: " << e.what() << '\n';
+      std::cout << "Starting with empty client list.\n";
     }
 
     try {
       repositories.policy_repo->load();
     } catch (const std::exception& e) {
-      std::cerr << "  Warning: could not load policies: " << e.what() << '\n';
-      std::cout << "  Starting with empty policy list.\n";
+      std::cerr << "[Warning]: could not load policies: " << e.what() << '\n';
+      std::cout << "Starting with empty policy list.\n";
+    }
+
+    try {
+      repositories.interactions_repo->load();
+    } catch (const std::exception& e) {
+      std::cerr << "[Warning]: could not load interactions: " << e.what()
+                << '\n';
+      std::cout << "Starting with empty interactions list.\n";
     }
 
     return repositories;
@@ -280,21 +289,25 @@ int main() {
       break;
     } else if (option == "load") {
       repos = cmdLoad(config);
-      if (repos.client_repo && repos.policy_repo) break;
+      if (repos.client_repo && repos.policy_repo && repos.interactions_repo)
+        break;
     } else if (option == "exit") {
       cmdExit();
     } else {
-      std::cout << "  Invalid option.\n";
+      std::cout << "Invalid option.\n";
     }
   }
 
   insura::service::PolicyService policy_service(*repos.policy_repo);
   insura::service::ClientService client_service(
       *repos.client_repo, *repos.policy_repo, *repos.interactions_repo);
+  insura::service::InteractionService interaction_service(
+      *repos.interactions_repo);
 
   insura::cli::Application app(
       config.autosave_enabled, config.autosave_interval_seconds, client_service,
-      *repos.client_repo, policy_service, *repos.policy_repo);
+      *repos.client_repo, policy_service, *repos.policy_repo,
+      interaction_service, *repos.interactions_repo);
 
   app.run();
   return 0;
