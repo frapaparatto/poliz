@@ -33,7 +33,6 @@ std::string fmtAmount(double v) {
 void PolicyView::displayAll(
     const std::vector<domain::Policy>& policies,
     const std::unordered_map<std::string, std::string>& client_names) {
-
   /* TODO: evaluate if that defensive check is worth doing here or if is better
    * to ensure each call site actually checks before passing and here adding an
    * assert */
@@ -64,16 +63,6 @@ void PolicyView::displayAll(
               << std::setw(kDateWidth) << p.getPolicyEndDate().value_or("N/A")
               << '\n';
   }
-}
-
-bool PolicyView::confirmClient(const domain::Client& client) {
-  std::cout << "First name:  " << client.getFirstName() << '\n'
-            << "Last name:   " << client.getLastName() << '\n'
-            << "Email:       " << client.getEmail() << '\n'
-            << "\nAdd policy for this client? (Y/n): ";
-  std::string choice;
-  std::getline(std::cin, choice);
-  return choice != "n";
 }
 
 void PolicyView::displayOne(const domain::Policy& p,

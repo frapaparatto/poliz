@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "../domain/interaction_status.hpp"
 #include "../domain/policy_status.hpp"
 #include "../domain/strops.hpp"
 #include "../domain/utils.hpp"
@@ -58,10 +59,20 @@ domain::Client selectClient(const std::vector<domain::Client>& clients) {
   }
 }
 
+bool confirmClient(const domain::Client& client, std::string_view entity) {
+  std::cout << "First name:  " << client.getFirstName() << '\n'
+            << "Last name:   " << client.getLastName() << '\n'
+            << "Email:       " << client.getEmail() << '\n'
+            << "\nAdd " << entity << " for this client? (Y/n): ";
+  std::string choice;
+  std::getline(std::cin, choice);
+  return choice != "n";
+}
+
 std::optional<domain::Client> resolveClient(service::ClientService& service) {
   std::string term;
   do {
-    std::cout << "Search: ";
+    std::cout << "\nSearch: ";
     std::getline(std::cin, term);
 
     /* TODO: decide whether an empty term should re-prompt or exit. Currently
@@ -131,6 +142,57 @@ std::optional<std::pair<domain::Policy, domain::Client>> resolvePolicy(
             << client->getLastName() << " (" << client->getEmail() << ")\n\n";
 
   return std::pair{selectPolicy(policies), *client};
+}
+
+std::string truncate(const std::optional<std::string>& opt, std::size_t max) {
+  if (!opt.has_value() || opt->empty()) return "";
+  if (opt->size() <= max) return *opt;
+  return opt->substr(0, max - 3) + "...";
+}
+
+std::unique_ptr<domain::Interaction> selectInteraction(
+    const std::vector<std::unique_ptr<domain::Interaction>>& interactions) {
+  for (std::size_t i = 0; i < interactions.size(); ++i) {
+    std::cout << "  [" << (i + 1) << "] " << std::left << std::setw(14)
+              << insura::domain::interactionTypeToString(interactions[i]->getType())
+              << interactions[i]->getDate() << '\n';
+  }
+  while (true) {
+    std::cout << "\nSelect an interaction (1-" << interactions.size() << "): ";
+    std::string input;
+    std::getline(std::cin, input);
+    if (!insura::utils::isDigitsOnly(input)) {
+      std::cout << "  Please enter a valid number.\n";
+      continue;
+    }
+    int index = std::stoi(input);
+    if (index < 1 || index > static_cast<int>(interactions.size())) {
+      std::cout << "  Number out of range.\n";
+      continue;
+    }
+    return interactions[static_cast<std::size_t>(index - 1)]->clone();
+  }
+}
+
+std::optional<std::pair<std::unique_ptr<domain::Interaction>, domain::Client>>
+resolveInteraction(service::InteractionService& interaction_service,
+                   service::ClientService& client_service) {
+  auto client = resolveClient(client_service);
+  if (!client) return std::nullopt;
+
+  auto interactions = interaction_service.searchByClient(client->getUuid());
+  if (interactions.empty()) {
+    std::cout << "No interactions found for this client.\n";
+    return std::nullopt;
+  }
+
+  if (interactions.size() == 1)
+    return std::pair{interactions.at(0)->clone(), *client};
+
+  std::cout << "\nClient: " << client->getFirstName() << " "
+            << client->getLastName() << " (" << client->getEmail() << ")\n\n";
+
+  return std::pair{selectInteraction(interactions), *client};
 }
 
 }  // namespace insura::cli
