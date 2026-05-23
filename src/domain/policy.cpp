@@ -68,6 +68,7 @@ const std::string& Policy::getClientUuid() const { return client_uuid_; }
 Policy::PolicyType Policy::getPolicyType() const { return policy_type_; }
 Policy::PolicyStatus Policy::getPolicyStatus() const { return policy_status_; }
 const std::string& Policy::getPolicyStartDate() const { return start_date_; }
+
 const std::optional<std::string>& Policy::getPolicyEndDate() const {
   return end_date_;
 }

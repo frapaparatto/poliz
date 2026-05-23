@@ -4,9 +4,11 @@
 #include <unordered_map>
 
 #include "../domain/i_client_repository.hpp"
+#include "../domain/i_interaction_repository.hpp"
 #include "../domain/i_policy_repository.hpp"
 #include "../service/auto_save_service.hpp"
 #include "../service/client_service.hpp"
+#include "../service/interaction_service.hpp"
 #include "../service/policy_service.hpp"
 #include "i_entity_controller.hpp"
 
@@ -18,7 +20,9 @@ class Application {
               service::ClientService& client_service,
               domain::IClientRepository& client_repo,
               service::PolicyService& policy_service,
-              domain::IPolicyRepository& policy_repo);
+              domain::IPolicyRepository& policy_repo,
+              service::InteractionService& interaction_service,
+              domain::IInteractionRepository& interaction_repo);
   void run();
 
  private:

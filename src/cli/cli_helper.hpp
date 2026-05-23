@@ -6,8 +6,10 @@
 #include <vector>
 
 #include "../domain/client.hpp"
+#include "../domain/interaction.hpp"
 #include "../domain/policy.hpp"
 #include "../service/client_service.hpp"
+#include "../service/interaction_service.hpp"
 #include "../service/policy_service.hpp"
 
 namespace insura::cli {
@@ -20,6 +22,7 @@ namespace insura::cli {
 std::string promptRequired(std::string_view prompt);
 std::optional<std::string> promptOptional(std::string_view prompt);
 void pause();
+bool confirmClient(const domain::Client& client, std::string_view entity);
 
 /*
  * Client resolution helpers.
@@ -50,5 +53,18 @@ domain::Policy selectPolicy(const std::vector<domain::Policy>& policies);
 std::optional<std::pair<domain::Policy, domain::Client>> resolvePolicy(
     service::PolicyService& policy_service,
     service::ClientService& client_service);
+
+std::unique_ptr<domain::Interaction> selectInteraction(
+    const std::vector<std::unique_ptr<domain::Interaction>>& interactions);
+
+std::optional<std::pair<std::unique_ptr<domain::Interaction>, domain::Client>>
+resolveInteraction(service::InteractionService& interaction_service,
+                   service::ClientService& client_service);
+
+/*
+ * Truncates an optional string to max characters, appending "..." when cut.
+ * Returns an empty string when the optional is empty.
+ */
+std::string truncate(const std::optional<std::string>& opt, std::size_t max);
 
 }  // namespace insura::cli

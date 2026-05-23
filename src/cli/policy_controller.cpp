@@ -217,7 +217,7 @@ void PolicyController::cmdAdd() {
   if (!client) return;
 
   std::cout << '\n';
-  if (!PolicyView::confirmClient(*client)) return;
+  if (!confirmClient(*client, "policy")) return;
 
   domain::PolicyData data;
   data.client_uuid = client->getUuid();
@@ -383,12 +383,12 @@ void PolicyController::cmdSearch() {
     input = insura::domain::strops::trim(input);
     if (input.empty()) return;
     if (!insura::utils::isDigitsOnly(input)) {
-      std::cout << "  Invalid input.\n";
+      std::cout << "Invalid input.\n";
       return;
     }
     int idx = std::stoi(input);
     if (idx < 1 || idx > static_cast<int>(results.size())) {
-      std::cout << "  Out of range.\n";
+      std::cout << "Out of range.\n";
       return;
     }
     const auto& p = results[static_cast<std::size_t>(idx - 1)];
@@ -422,7 +422,8 @@ void PolicyController::cmdEdit() {
   domain::PolicyData updated = promptPolicyEditData(policy);
 
   try {
-    /* TODO: evaluate whether "No updates made." should stay or just show nothing. */
+    /* TODO: evaluate whether "No updates made." should stay or just show
+     * nothing. */
     if (policy_service_.editPolicy(policy.getUuid(), updated))
       std::cout << "\nPolicy updated successfully.\n";
     else

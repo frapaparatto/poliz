@@ -1,40 +1,5 @@
 #pragma once
 #include <string>
-/*
- * Design considerations — Interaction hierarchy
- *
- * Interaction is an abstract base class with a pure virtual display()
- * method. This prevents direct instantiation — only Appointment and
- * Contract can be created. The service layer is responsible for
- * deciding which concrete type to construct based on user input.
- *
- * Virtual destructor is required on any base class. Without it,
- * deleting a derived object through a base pointer calls only the
- * base destructor, causing undefined behavior and potential leaks.
- *
- * display() is declared const and pure virtual. const because
- * rendering never modifies the object. Pure virtual because every
- * concrete subtype displays differently — Appointment shows time
- * and outcome, Contract shows value and status. Derived classes
- * use override to let the compiler verify the signature matches.
- *
- * Getters for primitive types (double, enum) return by value — no
- * reference needed since copying a primitive costs nothing and a
- * const reference on a primitive communicates nothing meaningful.
- * Getters for strings return const& to avoid copies while
- * preventing the caller from modifying internal state.
- *
- * Contract::getSignedDate() is named explicitly to distinguish it
- * from Interaction::getDate() which returns the interaction date.
- * Both exist and mean different things — naming makes that clear.
- *
- * uuid_ and created_at_ are generated at construction and never
- * modified — no setters for these fields.
- *
- * client_uuid_ is the foreign reference back to the owning Client.
- * Interaction never knows the client email — the service resolves
- * email to uuid before constructing any Interaction subtype.
- */
 
 namespace insura::domain {
 
@@ -45,37 +10,72 @@ class Interaction {
     CONTRACT,
   };
 
-  virtual void display() const = 0;
-  Interaction(std::string client_uuid, InteractionType type, std::string date);
+  Interaction(std::string client_uuid, InteractionType type, std::string date,
+              std::optional<std::string> notes);
+
+  /* load constructor */
+  Interaction(std::string uuid, std::string client_uuid, InteractionType type,
+              std::string date, std::optional<std::string> notes,
+              std::string created_at, std::string updated_at);
   virtual ~Interaction() = default;
 
+  virtual std::unique_ptr<Interaction> clone() const = 0;
   const std::string& getUuid() const;
   const std::string& getClientUuid() const;
   InteractionType getType() const;
   const std::string& getDate() const;
-  const std::string& getNotes() const;
+  const std::optional<std::string>& getNotes() const;
+  const std::string& getCreatedAt() const;
+  const std::string& getUpdatedAt() const;
+
+  void setType(InteractionType type);
+  void setDate(const std::string& date);
+  void setNotes(const std::string& notes);
+
+ protected:
+  std::string updated_at_;
 
  private:
   std::string uuid_;
   std::string client_uuid_;
   InteractionType interaction_type_;
-  std::string date_;  // TODO: evaluate format
-  std::string notes_;
-  std::string created_at_;  // same todo for date
-  std::string updated_at_;
+  std::string date_;
+  std::optional<std::string> notes_;
+  std::string created_at_;
 };
 
 class Appointment : public Interaction {
  public:
-  void display() const override;
-  Appointment(std::string client_uuid, std::string date, std::string time);
-  const std::string& getTime() const;
-  const std::string& getReport() const;
+  Appointment(std::string client_uuid, std::string date, std::string time,
+              int duration, std::optional<std::string> report,
+              std::optional<std::string> notes);
+
+  /* load constructor */
+  Appointment(std::string uuid, std::string client_uuid, std::string date,
+              std::string time, int duration, std::optional<std::string> report,
+              std::optional<std::string> notes, std::string created_at,
+              std::string updated_at);
+
+  std::unique_ptr<Interaction> clone() const override;
+  const std::string& getAppointmentTime() const;
+  int getDuration() const;
+  const std::optional<std::string>& getAppointmentReport() const;
+  void setTime(const std::string& time);
+  void setDuration(int duration);
+  void setReport(const std::string& report);
 
  private:
   std::string time_;
-  std::string report_;
+  /* here it can be useful to make also fixed as for policy amount
+   * instead of calculating it with a table, use 30min, 1h, 1.5h
+   * and 2h
+   * so another thing to understand is actually the format
+   * int (minutes) -> string for display (?)
+   * */
+  int duration_;  // minutes (30, 60, 80, 120)
+  std::optional<std::string> report_;
 };
+
 class Contract : public Interaction {
  public:
   enum class ContractStatus {
@@ -87,17 +87,35 @@ class Contract : public Interaction {
 
   Contract(std::string client_uuid, std::string date, double value,
            std::string product_name, std::string signed_date,
-           ContractStatus status);
-  void display() const override;
+           std::optional<std::string> expired_date, ContractStatus status,
+           std::optional<std::string> notes);
+
+  /* load constructor */
+  Contract(std::string uuid, std::string client_uuid, std::string date,
+           double value, std::string product_name, std::string signed_date,
+           std::optional<std::string> expired_date, ContractStatus status,
+           std::optional<std::string> notes, std::string created_at,
+           std::string updated_at);
+
   double getValue() const;
+  std::unique_ptr<Interaction> clone() const override;
   const std::string& getProductName() const;
   const std::string& getSignedDate() const;
+  const std::optional<std::string>& getExpiredDate() const;
   ContractStatus getStatus() const;
+  void setValue(double value);
+  void setProductName(const std::string& product_name);
+  void setSignedDate(const std::string& signed_date);
+  void setExpiredDate(const std::string& expired_date);
+  void setStatus(ContractStatus status);
 
  private:
   double value_;
   std::string product_name_;
   std::string signed_date_;
+  /* TODO: candidate for auto-calculation: signed_date + contract duration;
+   * revisit when refactoring contract lifecycle */
+  std::optional<std::string> expired_date_;
   ContractStatus contract_status_;
 };
 

@@ -8,6 +8,7 @@ target_sources(insura_domain
     utils.cpp
     client_status.cpp
     policy_status.cpp
+    interaction_status.cpp
     strops.cpp
 )
 

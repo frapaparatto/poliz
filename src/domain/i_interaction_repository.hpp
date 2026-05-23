@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "interaction.hpp"
@@ -12,11 +11,10 @@
  * copied. This affects the interface design in two ways:
  *
  * insertInteraction and updateInteraction accept
- * const std::unique_ptr<Interaction>& instead of const Interaction&.
- * Passing by reference would work for reading but the repository needs
- * to store the full derived object (Contract or Appointment). Storing
- * requires a pointer — a unique_ptr preserves the concrete type on the
- * heap without slicing or copying the abstract base.
+ * std::unique_ptr<Interaction> by value. The repository takes ownership
+ * of the object, so the caller must std::move into the parameter.
+ * unique_ptr cannot be copied, making const reference semantically wrong:
+ * it implies the callee only observes, not owns.
  *
  * All find and filter methods return
  * std::vector<std::unique_ptr<Interaction>> for the same reason.
@@ -38,20 +36,22 @@ namespace insura::domain {
 
 class IInteractionRepository {
  public:
+  virtual void save() const = 0;
+  virtual bool isDirty() const = 0;
   virtual void insertInteraction(
-      const std::unique_ptr<Interaction>& interaction) = 0;
-  virtual void removeInteraction(const std::string& uuid) = 0;
+      std::unique_ptr<Interaction> interaction) = 0;
+  virtual void removeInteraction(std::string_view uuid) = 0;
   virtual void updateInteraction(
-      const std::string& uuid,
-      const std::unique_ptr<Interaction>& updated) = 0;
+      std::unique_ptr<Interaction> updated) = 0;
 
   virtual std::vector<std::unique_ptr<Interaction>> filterByType(
-      Interaction::InteractionType type) = 0;
+      Interaction::InteractionType type) const = 0;
   virtual std::vector<std::unique_ptr<Interaction>> filterByDate(
-      const std::string& start_date, const std::string& end_date) = 0;
+      std::string_view start_date, std::string_view end_date) const = 0;
+  virtual std::unique_ptr<Interaction> findByUuid(std::string_view uuid) const = 0;
   virtual std::vector<std::unique_ptr<Interaction>> findByClientUuid(
-      const std::string& client_uuid) = 0;
-  virtual std::vector<std::unique_ptr<Interaction>> findAll() = 0;
+      std::string_view client_uuid) const = 0;
+  virtual std::vector<std::unique_ptr<Interaction>> findAll() const = 0;
 
   virtual ~IInteractionRepository() = default;
 };

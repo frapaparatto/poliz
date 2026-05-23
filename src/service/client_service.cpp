@@ -42,11 +42,16 @@ void ClientService::deleteClient(std::string_view uuid) {
   assert(client.has_value() && "deleteClient: UUID not found");
   if (!client) throw std::invalid_argument("client not found");
 
-  std::vector<domain::Policy> client_policies =
-      policies_.findByClientUuid(uuid);
+  auto client_policies = policies_.findByClientUuid(uuid);
 
   for (const auto& policy : client_policies) {
     policies_.removePolicy(policy.getUuid());
+  }
+
+  auto client_interactions = interactions_.findByClientUuid(uuid);
+
+  for (const auto& interaction : client_interactions) {
+    interactions_.removeInteraction(interaction->getUuid());
   }
 
   repo_.removeClient(uuid);

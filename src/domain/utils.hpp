@@ -12,6 +12,8 @@ bool isDigitsOnly(std::string_view str);
 bool isValidPhone(std::string_view phone);
 bool isValidCsvFile(const std::filesystem::path& path);
 
+/* I have to create helper like isValidTime for appointments*/
+
 namespace date {
 bool isValidDate(const std::string& date);
 bool isDateAfter(const std::string& start_date, const std::string& end_date);
