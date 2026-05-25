@@ -10,6 +10,8 @@ class CsvClientRepository : public domain::IClientRepository {
  public:
   explicit CsvClientRepository(std::string filepath);
   void load();
+  /* moved here to make it easy to test */
+  void save() const override;
   void insertClient(domain::Client client) override;
   void removeClient(std::string_view uuid) override;
   void updateClient(domain::Client updated) override;
@@ -21,7 +23,6 @@ class CsvClientRepository : public domain::IClientRepository {
 
  private:
   mutable std::mutex mtx_;
-  void save() const override;
   bool isDirty() const override { return dirty_; }
   std::string serialize(const domain::Client& c) const;
   domain::Client deserialize(const std::string& line) const;
