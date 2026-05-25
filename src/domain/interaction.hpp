@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <optional>
+#include <memory>
 
 namespace insura::domain {
 

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <array>
 #include <chrono>
 #include <ctime>
 #include <mutex>
