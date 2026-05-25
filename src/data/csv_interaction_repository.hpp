@@ -12,6 +12,8 @@ class CsvInteractionRepository : public domain::IInteractionRepository {
  public:
   explicit CsvInteractionRepository(std::string filepath);
   void load();
+  /* moved here to make it easy to test */
+  void save() const override;
   void insertInteraction(
       std::unique_ptr<domain::Interaction> interaction) override;
   void removeInteraction(std::string_view uuid) override;
@@ -29,7 +31,6 @@ class CsvInteractionRepository : public domain::IInteractionRepository {
   std::vector<std::unique_ptr<domain::Interaction>> findAll() const override;
 
  private:
-  void save() const override;
   bool isDirty() const override { return dirty_; }
   std::string serialize(
       const std::unique_ptr<domain::Interaction>& i) const;

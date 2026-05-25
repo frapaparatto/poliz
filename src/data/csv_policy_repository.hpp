@@ -10,6 +10,8 @@ class CsvPolicyRepository : public domain::IPolicyRepository {
  public:
   explicit CsvPolicyRepository(std::string filepath);
   void load();
+  /* moved here to make it easy to test */
+  void save() const override;
   void insertPolicy(domain::Policy policy) override;
   void removePolicy(std::string_view uuid) override;
   void updatePolicy(domain::Policy updated) override;
@@ -24,7 +26,6 @@ class CsvPolicyRepository : public domain::IPolicyRepository {
   std::vector<domain::Policy> findAll() const override;
 
  private:
-  void save() const override;
   bool isDirty() const override { return dirty_; }
   std::string serialize(const domain::Policy& p) const;
   domain::Policy deserialize(const std::string& line) const;
