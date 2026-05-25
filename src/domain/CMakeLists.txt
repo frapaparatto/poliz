@@ -1,4 +1,5 @@
 add_library(insura_domain STATIC)
+target_compile_options(insura_domain PRIVATE -Wall -Wextra -Wpedantic)
 
 target_sources(insura_domain
   PRIVATE

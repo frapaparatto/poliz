@@ -28,6 +28,5 @@ class CsvClientRepository : public domain::IClientRepository {
   std::vector<domain::Client> clients_;
   std::string filepath_;
   mutable bool dirty_ = false;
-  ;
 };
 }  // namespace insura::data

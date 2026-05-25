@@ -1,4 +1,5 @@
 add_library(insura_cli STATIC)
+target_compile_options(insura_cli PRIVATE -Wall -Wextra -Wpedantic)
 
 target_link_libraries(insura_cli
 PRIVATE

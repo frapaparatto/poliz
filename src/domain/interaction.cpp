@@ -26,13 +26,16 @@ Interaction::Interaction(std::string uuid, std::string client_uuid,
                          InteractionType type, std::string date,
                          std::optional<std::string> notes,
                          std::string created_at, std::string updated_at)
-    : uuid_(std::move(uuid)),
+    /* updated_at_ is declared in the protected section, before all private
+     * members. Initializer lists must follow declaration order or the compiler
+     * warns (-Wreorder). */
+    : updated_at_(std::move(updated_at)),
+      uuid_(std::move(uuid)),
       client_uuid_(std::move(client_uuid)),
       interaction_type_(type),
       date_(std::move(date)),
       notes_(std::move(notes)),
-      created_at_(std::move(created_at)),
-      updated_at_(std::move(updated_at)) {}
+      created_at_(std::move(created_at)) {}
 
 const std::string& Interaction::getUuid() const { return uuid_; }
 const std::string& Interaction::getClientUuid() const { return client_uuid_; }

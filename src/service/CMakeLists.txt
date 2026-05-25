@@ -1,4 +1,5 @@
 add_library(insura_service STATIC)
+target_compile_options(insura_service PRIVATE -Wall -Wextra -Wpedantic)
 
 target_sources(insura_service
   PRIVATE
