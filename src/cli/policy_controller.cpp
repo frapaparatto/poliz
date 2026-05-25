@@ -158,7 +158,7 @@ void PolicyController::execute(const std::string& cmd) {
   if (it != commands_.end())
     it->second();
   else
-    std::cout << "\nUnknown commands\n";
+    std::cout << "\nUnknown command.\n";
 
   pause();
 }
@@ -270,7 +270,7 @@ void PolicyController::cmdAdd() {
     policy_service_.addPolicy(data);
     std::cout << "\nPolicy added successfully.\n";
   } catch (const std::invalid_argument& e) {
-    std::cout << "\n  Error: " << e.what() << '\n';
+    std::cout << "\nError: " << e.what() << '\n';
   }
 }
 
@@ -337,7 +337,7 @@ void PolicyController::cmdSearch() {
     }
 
   } else {
-    std::cout << "  Invalid choice.\n";
+    std::cout << "Invalid choice.\n";
     return;
   }
 
@@ -429,7 +429,7 @@ void PolicyController::cmdEdit() {
     else
       std::cout << "\nNo updates made.\n";
   } catch (const std::invalid_argument& e) {
-    std::cout << "\n  Error: " << e.what() << '\n';
+    std::cout << "\nError: " << e.what() << '\n';
   }
 }
 
@@ -451,7 +451,7 @@ void PolicyController::cmdDelete() {
     policy_service_.deletePolicy(policy.getUuid());
     std::cout << "\nPolicy deleted successfully.\n";
   } catch (const std::invalid_argument& e) {
-    std::cout << "\n  Error: " << e.what() << '\n';
+    std::cout << "\nError: " << e.what() << '\n';
   }
 }
 

@@ -20,6 +20,10 @@ class InteractionService {
   bool editContract(std::string_view uuid, const domain::ContractData& data);
   std::vector<std::unique_ptr<domain::Interaction>> searchByClient(
       std::string_view client_uuid) const;
+  std::vector<std::unique_ptr<domain::Interaction>> searchByType(
+      domain::Interaction::InteractionType type) const;
+  std::vector<std::unique_ptr<domain::Interaction>> searchByDateRange(
+      std::string_view start, std::string_view end) const;
 
  private:
   domain::IInteractionRepository& interaction_repo_;

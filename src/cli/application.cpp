@@ -114,7 +114,7 @@ void Application::run() {
       }
 
     } else {
-      std::cout << "  Unknown command. Type a command from the menu above.\n";
+      std::cout << "\nUnknown command. Type a command from the menu above.\n";
     }
   }
 }

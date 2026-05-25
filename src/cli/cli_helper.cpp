@@ -85,7 +85,7 @@ std::optional<domain::Client> resolveClient(service::ClientService& service) {
     std::vector<domain::Client> found = service.searchClients(term);
 
     if (found.empty()) {
-      std::cout << "No contact found.\n";
+      std::cout << "No contacts found.\n";
     } else if (found.size() == 1) {
       return found.at(0);
     } else {
@@ -144,17 +144,23 @@ std::optional<std::pair<domain::Policy, domain::Client>> resolvePolicy(
   return std::pair{selectPolicy(policies), *client};
 }
 
+std::string truncate(const std::string& s, std::size_t max) {
+  if (s.empty()) return "";
+  if (s.size() <= max) return s;
+  return s.substr(0, max - 5) + "...";
+}
+
 std::string truncate(const std::optional<std::string>& opt, std::size_t max) {
-  if (!opt.has_value() || opt->empty()) return "";
-  if (opt->size() <= max) return *opt;
-  return opt->substr(0, max - 3) + "...";
+  if (!opt.has_value()) return "";
+  return truncate(*opt, max);
 }
 
 std::unique_ptr<domain::Interaction> selectInteraction(
     const std::vector<std::unique_ptr<domain::Interaction>>& interactions) {
   for (std::size_t i = 0; i < interactions.size(); ++i) {
     std::cout << "  [" << (i + 1) << "] " << std::left << std::setw(14)
-              << insura::domain::interactionTypeToString(interactions[i]->getType())
+              << insura::domain::interactionTypeToString(
+                     interactions[i]->getType())
               << interactions[i]->getDate() << '\n';
   }
   while (true) {

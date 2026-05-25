@@ -51,7 +51,7 @@ insura::domain::Interaction::InteractionType promptInteractionType() {
                          kInteractionTypeOptions[i]))
               << '\n';
   while (true) {
-    std::cout << "Select type (1-2): ";
+    std::cout << "\nSelect type (1-2): ";
     std::string input;
     std::getline(std::cin, input);
     input = insura::domain::strops::trim(input);
@@ -140,7 +140,7 @@ void InteractionController::execute(const std::string& cmd) {
   if (it != commands_.end())
     it->second();
   else
-    std::cout << "\nUnknown commands\n";
+    std::cout << "\nUnknown command.\n";
 
   pause();
 }
@@ -175,7 +175,7 @@ void InteractionController::cmdAdd() {
         break;
       }
       if (!insura::utils::date::isValidDate(date)) {
-        std::cout << "Invalid date. Expected format: YYYY-MM-DD.\n";
+        std::cout << "  Invalid date. Expected format: YYYY-MM-DD.\n";
         continue;
       }
       data.date = date;
@@ -379,10 +379,6 @@ domain::ContractData InteractionController::promptContractEditData(
 }
 
 void InteractionController::cmdList() {
-  /* TODO: add filter options (by type, by date range, by contract status)
-   * mirroring PolicyController::cmdSearch; requires InteractionFilter in the
-   * service layer first. */
-  std::unordered_map<std::string, std::string> name_map;
   auto interactions = interaction_repo_.findAll();
 
   if (interactions.empty()) {
@@ -390,6 +386,7 @@ void InteractionController::cmdList() {
     return;
   }
 
+  std::unordered_map<std::string, std::string> name_map;
   for (const auto& i : interactions) {
     if (name_map.count(i->getClientUuid()) == 0) {
       auto client = client_repo_.findByUuid(i->getClientUuid());
@@ -401,29 +398,151 @@ void InteractionController::cmdList() {
   }
 
   std::cout << '\n';
-  InteractionView::displayAll(interaction_repo_.findAll(), name_map);
+  InteractionView::displayAll(interactions, name_map);
+
+  if (interactions.size() == 1) {
+    std::cout << "\nView details? (Enter to view, n to skip): ";
+    std::string input;
+    std::getline(std::cin, input);
+    input = insura::domain::strops::trim(input);
+    if (input != "n") {
+      std::cout << '\n';
+      const auto& name = name_map.at(interactions[0]->getClientUuid());
+      InteractionView::displayOne(interactions[0], name);
+    }
+  } else {
+    std::cout << "\nView details for a specific entry? (1-" << interactions.size()
+              << ", Enter to skip): ";
+    std::string input;
+    std::getline(std::cin, input);
+    input = insura::domain::strops::trim(input);
+    if (input.empty()) return;
+    if (!insura::utils::isDigitsOnly(input)) {
+      std::cout << "Invalid input.\n";
+      return;
+    }
+    int idx = std::stoi(input);
+    if (idx < 1 || idx > static_cast<int>(interactions.size())) {
+      std::cout << "Out of range.\n";
+      return;
+    }
+    const auto& entry = interactions[static_cast<std::size_t>(idx - 1)];
+    const auto& name = name_map.at(entry->getClientUuid());
+    std::cout << '\n';
+    InteractionView::displayOne(entry, name);
+  }
 }
 
 void InteractionController::cmdSearch() {
-  /* TODO: expand search axes (by type, by date range, by contract status)
-   * once InteractionFilter exists in the service layer; see cmdList TODO. */
-  std::cout << "\nClient:\n";
-  auto client = resolveClient(client_service_);
-  if (!client) return;
+  std::cout << "\nSearch by:\n"
+            << "  1. Client\n"
+            << "  2. Type\n"
+            << "  3. Date range\n"
+            << "\n> ";
 
-  auto results = interaction_service_.searchByClient(client->getUuid());
+  std::string choice;
+  std::getline(std::cin, choice);
+  choice = insura::domain::strops::trim(choice);
+
+  std::vector<std::unique_ptr<domain::Interaction>> results;
+  std::unordered_map<std::string, std::string> name_map;
+  std::optional<domain::Interaction::InteractionType> filter_type;
+
+  if (choice == "1") {
+    std::cout << "Client:\n";
+    auto client = resolveClient(client_service_);
+    if (!client) return;
+    results = interaction_service_.searchByClient(client->getUuid());
+    name_map[client->getUuid()] =
+        client->getFirstName() + " " + client->getLastName();
+
+  } else if (choice == "2") {
+    std::cout << "Type:\n";
+    filter_type = promptInteractionType();
+    results = interaction_service_.searchByType(*filter_type);
+
+  } else if (choice == "3") {
+    std::string start;
+    while (true) {
+      std::cout << "From (YYYY-MM-DD): ";
+      std::getline(std::cin, start);
+      start = insura::domain::strops::trim(start);
+      if (insura::utils::date::isValidDate(start)) break;
+      std::cout << "  Invalid date. Expected format: YYYY-MM-DD.\n";
+    }
+    std::string end;
+    while (true) {
+      std::cout << "To (YYYY-MM-DD): ";
+      std::getline(std::cin, end);
+      end = insura::domain::strops::trim(end);
+      if (insura::utils::date::isValidDate(end)) break;
+      std::cout << "  Invalid date. Expected format: YYYY-MM-DD.\n";
+    }
+    results = interaction_service_.searchByDateRange(start, end);
+
+  } else {
+    std::cout << "Invalid choice.\n";
+    return;
+  }
 
   if (results.empty()) {
     std::cout << "No interactions found.\n";
     return;
   }
 
-  std::unordered_map<std::string, std::string> name_map;
-  name_map[client->getUuid()] =
-      client->getFirstName() + " " + client->getLastName();
+  /* Build name_map for results not already resolved above (type and date
+   * range searches return interactions for any client). */
+  for (const auto& i : results) {
+    if (name_map.count(i->getClientUuid()) == 0) {
+      auto client = client_repo_.findByUuid(i->getClientUuid());
+      assert(client.has_value() &&
+             "interaction references non-existent client");
+      name_map[client->getUuid()] =
+          client->getFirstName() + " " + client->getLastName();
+    }
+  }
 
   std::cout << '\n';
-  InteractionView::displayAll(results, name_map);
+  if (filter_type == domain::Interaction::InteractionType::APPOINTMENT) {
+    InteractionView::displayAllAppointments(results, name_map);
+  } else if (filter_type == domain::Interaction::InteractionType::CONTRACT) {
+    InteractionView::displayAllContracts(results, name_map);
+  } else {
+    InteractionView::displayAll(results, name_map);
+  }
+
+  /* Drill-down into one entry for full detail. */
+  if (results.size() == 1) {
+    std::cout << "\nView details? (Enter to view, n to skip): ";
+    std::string input;
+    std::getline(std::cin, input);
+    input = insura::domain::strops::trim(input);
+    if (input != "n") {
+      std::cout << '\n';
+      const auto& name = name_map.at(results[0]->getClientUuid());
+      InteractionView::displayOne(results[0], name);
+    }
+  } else {
+    std::cout << "\nView details for a specific entry? (1-" << results.size()
+              << ", Enter to skip): ";
+    std::string input;
+    std::getline(std::cin, input);
+    input = insura::domain::strops::trim(input);
+    if (input.empty()) return;
+    if (!insura::utils::isDigitsOnly(input)) {
+      std::cout << "Invalid input.\n";
+      return;
+    }
+    int idx = std::stoi(input);
+    if (idx < 1 || idx > static_cast<int>(results.size())) {
+      std::cout << "Out of range.\n";
+      return;
+    }
+    const auto& entry = results[static_cast<std::size_t>(idx - 1)];
+    const auto& name = name_map.at(entry->getClientUuid());
+    std::cout << '\n';
+    InteractionView::displayOne(entry, name);
+  }
 }
 
 void InteractionController::cmdView() {

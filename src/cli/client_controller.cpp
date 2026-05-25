@@ -114,7 +114,7 @@ void ClientController::execute(const std::string& cmd) {
   if (it != commands_.end())
     it->second();
   else
-    std::cout << "\nUnknown commands\n";
+    std::cout << "\nUnknown command.\n";
 
   pause();
 }
@@ -205,7 +205,7 @@ void ClientController::cmdAdd() {
     client_service_.addClient(data);
     std::cout << "\nClient added successfully.\n";
   } catch (const std::invalid_argument& e) {
-    std::cout << "\n  Error: " << e.what() << "\n";
+    std::cout << "\nError: " << e.what() << "\n";
   }
 }
 
@@ -243,12 +243,12 @@ void ClientController::cmdSearch() {
     input = insura::domain::strops::trim(input);
     if (input.empty()) return;
     if (!insura::utils::isDigitsOnly(input)) {
-      std::cout << "  Invalid input.\n";
+      std::cout << "Invalid input.\n";
       return;
     }
     int idx = std::stoi(input);
     if (idx < 1 || idx > static_cast<int>(found.size())) {
-      std::cout << "  Out of range.\n";
+      std::cout << "Out of range.\n";
       return;
     }
     std::cout << '\n';
@@ -419,7 +419,7 @@ void ClientController::cmdDelete() {
     client_service_.deleteClient(client->getUuid());
     std::cout << "\nClient eliminated successfully.\n";
   } catch (const std::invalid_argument& e) {
-    std::cout << "\n  Error: " << e.what() << "\n";
+    std::cout << "\nError: " << e.what() << "\n";
   }
 }
 
@@ -442,7 +442,7 @@ void ClientController::cmdEdit() {
     else
       std::cout << "\nNo updates made.\n";
   } catch (const std::invalid_argument& e) {
-    std::cout << "\n  Error: " << e.what() << "\n";
+    std::cout << "\nError: " << e.what() << "\n";
   }
 }
 

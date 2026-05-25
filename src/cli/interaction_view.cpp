@@ -15,13 +15,29 @@
 namespace insura::cli {
 
 namespace {
-constexpr int kTypeWidth = 14;
-constexpr int kClientWidth = 22;
-constexpr int kDateWidth = 12;
+constexpr int kTypeWidth = 15;
+constexpr int kClientWidth = 20;
+constexpr int kDateWidth = 15;
 constexpr int kNotesWidth = 30;
 const std::string kSeparator(kTypeWidth + kClientWidth + kDateWidth +
                                  kNotesWidth,
                              '-');
+
+constexpr int kApptTimeWidth = 10;
+constexpr int kApptDurationWidth = 10;
+constexpr int kApptReportWidth = 30;
+const std::string kApptSeparator(kClientWidth + kDateWidth + kApptTimeWidth +
+                                     kApptDurationWidth + kApptReportWidth,
+                                 '-');
+
+constexpr int kContractProductWidth = 22;
+constexpr int kContractValueWidth = 14;
+constexpr int kContractStatusWidth = 16;
+const std::string kContractSeparator(kClientWidth + kDateWidth +
+                                         kContractProductWidth +
+                                         kContractValueWidth +
+                                         kContractStatusWidth,
+                                     '-');
 
 std::string fmtAmount(double v) {
   std::ostringstream ss;
@@ -67,6 +83,75 @@ void InteractionView::displayAll(
               << std::setw(kClientWidth) << name << std::setw(kDateWidth)
               << i->getDate() << std::setw(kNotesWidth)
               << insura::cli::truncate(i->getNotes(), kNotesWidth) << '\n';
+  }
+}
+
+void InteractionView::displayAllAppointments(
+    const std::vector<std::unique_ptr<insura::domain::Interaction>>&
+        interactions,
+    const std::unordered_map<std::string, std::string>& client_names) {
+  if (interactions.empty()) {
+    std::cout << "No appointments found.\n";
+    return;
+  }
+
+  std::cout << std::left << std::setw(kClientWidth) << "Client"
+            << std::setw(kDateWidth) << "Date" << std::setw(kApptTimeWidth)
+            << "Time" << std::setw(kApptDurationWidth) << "Duration"
+            << std::setw(kApptReportWidth) << "Report" << '\n'
+            << kApptSeparator << '\n';
+
+  for (const auto& i : interactions) {
+    auto it = client_names.find(i->getClientUuid());
+    assert(it != client_names.end() &&
+           "interaction must be associated with a valid client");
+    const auto* a =
+        dynamic_cast<const insura::domain::Appointment*>(i.get());
+    assert(a && "displayAllAppointments: non-appointment in result set");
+
+    std::cout << std::left << std::setw(kClientWidth) << it->second
+              << std::setw(kDateWidth) << a->getDate()
+              << std::setw(kApptTimeWidth) << a->getAppointmentTime()
+              << std::setw(kApptDurationWidth) << fmtDuration(a->getDuration())
+              << std::setw(kApptReportWidth)
+              << insura::cli::truncate(a->getAppointmentReport(), kApptReportWidth)
+              << '\n';
+  }
+}
+
+void InteractionView::displayAllContracts(
+    const std::vector<std::unique_ptr<insura::domain::Interaction>>&
+        interactions,
+    const std::unordered_map<std::string, std::string>& client_names) {
+  if (interactions.empty()) {
+    std::cout << "No contracts found.\n";
+    return;
+  }
+
+  std::cout << std::left << std::setw(kClientWidth) << "Client"
+            << std::setw(kDateWidth) << "Date"
+            << std::setw(kContractProductWidth) << "Product"
+            << std::setw(kContractValueWidth) << "Value"
+            << std::setw(kContractStatusWidth) << "Status" << '\n'
+            << kContractSeparator << '\n';
+
+  for (const auto& i : interactions) {
+    auto it = client_names.find(i->getClientUuid());
+    assert(it != client_names.end() &&
+           "interaction must be associated with a valid client");
+    const auto* c =
+        dynamic_cast<const insura::domain::Contract*>(i.get());
+    assert(c && "displayAllContracts: non-contract in result set");
+
+    std::cout << std::left << std::setw(kClientWidth) << it->second
+              << std::setw(kDateWidth) << c->getDate()
+              << std::setw(kContractProductWidth)
+              << insura::cli::truncate(c->getProductName(), kContractProductWidth)
+              << std::setw(kContractValueWidth) << fmtAmount(c->getValue())
+              << std::setw(kContractStatusWidth)
+              << insura::domain::strops::capitalize(
+                     insura::domain::contractStatusToString(c->getStatus()))
+              << '\n';
   }
 }
 

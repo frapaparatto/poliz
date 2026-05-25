@@ -138,4 +138,16 @@ InteractionService::searchByClient(std::string_view client_uuid) const {
   return interaction_repo_.findByClientUuid(client_uuid);
 }
 
+std::vector<std::unique_ptr<domain::Interaction>>
+InteractionService::searchByType(
+    domain::Interaction::InteractionType type) const {
+  return interaction_repo_.filterByType(type);
+}
+
+std::vector<std::unique_ptr<domain::Interaction>>
+InteractionService::searchByDateRange(std::string_view start,
+                                      std::string_view end) const {
+  return interaction_repo_.filterByDate(start, end);
+}
+
 }  // namespace insura::service

@@ -62,9 +62,10 @@ resolveInteraction(service::InteractionService& interaction_service,
                    service::ClientService& client_service);
 
 /*
- * Truncates an optional string to max characters, appending "..." when cut.
- * Returns an empty string when the optional is empty.
+ * Truncates a string to max characters, appending "..." when cut.
+ * The optional overload returns an empty string when the optional is empty.
  */
+std::string truncate(const std::string& s, std::size_t max);
 std::string truncate(const std::optional<std::string>& opt, std::size_t max);
 
 }  // namespace insura::cli

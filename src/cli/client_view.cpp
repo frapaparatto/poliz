@@ -4,13 +4,15 @@
 #include <iostream>
 #include <string>
 
+#include "cli_helper.hpp"
 #include "client_status.hpp"
 
 namespace insura::cli {
 
 namespace {
-constexpr int kColWidth = 22;
-const std::string kSeparator(kColWidth * 5, '-');
+constexpr int kColWidth = 18;
+constexpr int kEmailColWidth = 35;
+const std::string kSeparator(kColWidth * 4 + kEmailColWidth, '-');
 }  // namespace
 
 /* TODO: understand which informations are the most useful to display, for now
@@ -18,17 +20,18 @@ const std::string kSeparator(kColWidth * 5, '-');
 
 void ClientView::displayAll(const std::vector<domain::Client>& clients) {
   std::cout << std::left << std::setw(kColWidth) << "First Name"
-            << std::setw(kColWidth) << "Last Name" << std::setw(kColWidth)
-            << "Email" << std::setw(kColWidth) << "Lead Status"
+            << std::setw(kColWidth) << "Last Name"
+            << std::setw(kEmailColWidth) << "Email"
+            << std::setw(kColWidth) << "Lead Status"
             << std::setw(kColWidth) << "Created At" << '\n'
             << kSeparator << '\n';
 
   for (const auto& c : clients) {
     std::cout << std::left << std::setw(kColWidth) << c.getFirstName()
-              << std::setw(kColWidth) << c.getLastName() << std::setw(kColWidth)
-              << c.getEmail() << std::setw(kColWidth)
-              << domain::statusToString(c.getStatus()) << std::setw(kColWidth)
-              << c.getCreatedAt() << '\n';
+              << std::setw(kColWidth) << c.getLastName()
+              << std::setw(kEmailColWidth) << truncate(c.getEmail(), kEmailColWidth)
+              << std::setw(kColWidth) << domain::statusToString(c.getStatus())
+              << std::setw(kColWidth) << c.getCreatedAt() << '\n';
   }
 }
 
