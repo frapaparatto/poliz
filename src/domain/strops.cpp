@@ -1,4 +1,7 @@
+#include "strops.hpp"
+
 #include <algorithm>
+#include <cctype>
 #include <string>
 
 namespace insura::domain::strops {

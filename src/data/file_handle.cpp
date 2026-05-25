@@ -1,6 +1,7 @@
 #include "file_handle.hpp"
 
 #include <iostream>
+#include <stdexcept>
 
 namespace insura::data {
 

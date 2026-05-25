@@ -1,6 +1,7 @@
 #include "./interaction.hpp"
 
 #include <cassert>
+#include <stdexcept>
 
 #include "./utils.hpp"
 

@@ -1,5 +1,6 @@
 #include "csv_interaction_repository.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <filesystem>
 #include <mutex>

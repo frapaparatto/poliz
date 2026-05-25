@@ -1,5 +1,6 @@
 #include "csv_client_repository.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <filesystem>
 #include <mutex>
