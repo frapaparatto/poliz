@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <filesystem>
+#include <iomanip>
 #include <mutex>
 #include <sstream>
 #include <stdexcept>
@@ -141,7 +142,7 @@ std::string CsvInteractionRepository::serializeContract(
   ss << c.getClientUuid() << ",";
   ss << domain::interactionTypeToString(c.getType()) << ",";
   ss << c.getDate() << ",";
-  ss << std::to_string(c.getValue()) << ",";
+  ss << std::fixed << std::setprecision(2) << c.getValue() << ",";
   ss << c.getProductName() << ",";
   ss << c.getSignedDate() << ",";
   ss << c.getExpiredDate().value_or("") << ",";

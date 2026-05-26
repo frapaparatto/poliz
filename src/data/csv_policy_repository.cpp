@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iomanip>
 #include <iterator>
 #include <sstream>
 #include <stdexcept>
@@ -107,7 +108,7 @@ std::string CsvPolicyRepository::serialize(const domain::Policy& p) const {
   ss << domain::policyTypeToString(p.getPolicyType()) << ",";
   ss << p.getPolicyStartDate() << ",";
   ss << p.getPolicyEndDate().value_or("") << ",";
-  ss << std::to_string(p.getPolicyAmount()) << ",";
+  ss << std::fixed << std::setprecision(2) << p.getPolicyAmount() << ",";
   ss << domain::policyStatusToString(p.getPolicyStatus()) << ",";
   ss << p.getPolicyNotes().value_or("") << ",";
   ss << p.getCreatedAt() << ",";
