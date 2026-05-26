@@ -15,7 +15,7 @@ namespace insura::cli {
 
 namespace {
 constexpr int kTypeWidth = 10;
-constexpr int kClientWidth = 22;
+constexpr int kClientWidth = 21;
 constexpr int kStatusWidth = 15;
 constexpr int kAmountWidth = 12;
 constexpr int kDateWidth = 12;
@@ -58,7 +58,7 @@ void PolicyView::displayAll(
               << domain::policyTypeToString(p.getPolicyType())
               << std::setw(kClientWidth) << name << std::setw(kStatusWidth)
               << domain::policyStatusToString(p.getPolicyStatus())
-              << std::setw(kAmountWidth + 2) << fmtAmount(p.getPolicyAmount())
+              << std::setw(kAmountWidth) << fmtAmount(p.getPolicyAmount())
               << std::setw(kDateWidth) << p.getPolicyStartDate()
               << std::setw(kDateWidth) << p.getPolicyEndDate().value_or("N/A")
               << '\n';

@@ -2,17 +2,34 @@
 
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 
+#include "../domain/policy_status.hpp"
 #include "cli_helper.hpp"
 #include "client_status.hpp"
 
 namespace insura::cli {
 
 namespace {
-constexpr int kColWidth = 18;
-constexpr int kEmailColWidth = 35;
+constexpr int kColWidth = 14;
+constexpr int kEmailColWidth = 24;
 const std::string kSeparator(kColWidth * 4 + kEmailColWidth, '-');
+
+constexpr int kPTypeWidth = 14;
+constexpr int kPStatusWidth = 14;
+constexpr int kPAmountWidth = 14;
+constexpr int kDateLen = 10;
+constexpr int kArrowWidth = 3;
+const std::string kPolicySep(kPTypeWidth + kPStatusWidth + kPAmountWidth +
+                                 kDateLen * 2 + kArrowWidth,
+                             '-');
+
+std::string fmtAmount(double v) {
+  std::ostringstream ss;
+  ss << "€" << std::fixed << std::setprecision(2) << v;
+  return ss.str();
+}
 }  // namespace
 
 /* TODO: understand which informations are the most useful to display, for now
@@ -52,6 +69,26 @@ void ClientView::displayOne(const domain::Client& c) {
             << "Lead status: " << domain::statusToString(c.getStatus()) << '\n'
             << "Created at:  " << c.getCreatedAt() << '\n'
             << "Updated at:  " << c.getUpdatedAt() << '\n';
+}
+
+void ClientView::displayPolicies(const std::vector<domain::Policy>& policies) {
+  std::cout << std::left << std::setw(kPTypeWidth) << "Type"
+            << std::setw(kPStatusWidth) << "Status" << std::setw(kPAmountWidth)
+            << "Amount"
+            << "Start → End\n"
+            << kPolicySep << '\n';
+
+  for (const auto& p : policies) {
+    const std::string amt = fmtAmount(p.getPolicyAmount());
+    const std::string end_date = p.getPolicyEndDate().value_or("N/A");
+    const std::string range = p.getPolicyStartDate() + " → " + end_date;
+
+    std::cout << std::left << std::setw(kPTypeWidth)
+              << domain::policyTypeToString(p.getPolicyType())
+              << std::setw(kPStatusWidth)
+              << domain::policyStatusToString(p.getPolicyStatus())
+              << std::setw(kPAmountWidth + 2) << amt << range << '\n';
+  }
 }
 
 }  // namespace insura::cli

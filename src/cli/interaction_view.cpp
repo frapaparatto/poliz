@@ -15,24 +15,24 @@
 namespace insura::cli {
 
 namespace {
-constexpr int kTypeWidth = 15;
+constexpr int kTypeWidth = 13;
 constexpr int kClientWidth = 20;
 constexpr int kDateWidth = 15;
-constexpr int kNotesWidth = 30;
+constexpr int kNotesWidth = 20;
 const std::string kSeparator(kTypeWidth + kClientWidth + kDateWidth +
                                  kNotesWidth,
                              '-');
 
 constexpr int kApptTimeWidth = 10;
 constexpr int kApptDurationWidth = 10;
-constexpr int kApptReportWidth = 30;
+constexpr int kApptReportWidth = 25;
 const std::string kApptSeparator(kClientWidth + kDateWidth + kApptTimeWidth +
                                      kApptDurationWidth + kApptReportWidth,
                                  '-');
 
-constexpr int kContractProductWidth = 22;
+constexpr int kContractProductWidth = 19;
 constexpr int kContractValueWidth = 14;
-constexpr int kContractStatusWidth = 16;
+constexpr int kContractStatusWidth = 12;
 const std::string kContractSeparator(kClientWidth + kDateWidth +
                                          kContractProductWidth +
                                          kContractValueWidth +

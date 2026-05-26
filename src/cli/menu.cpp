@@ -21,6 +21,8 @@ void Menu::displayInitMenu() {
             << "manage interactions\n"
             << "  " << std::setw(kInitWidth) << "save"
             << "save data to CSV\n"
+            << "  " << std::setw(kInitWidth) << "clear"
+            << "clear the screen\n"
             << "  " << std::setw(kInitWidth) << "exit"
             << "exit\n\n";
 }
@@ -43,6 +45,8 @@ void Menu::displayEntityMenu(std::string_view entity) {
             << "go back\n"
             << "  " << std::setw(kEntityWidth) << "save"
             << "save\n"
+            << "  " << std::setw(kEntityWidth) << "clear"
+            << "clear the screen\n"
             << "  " << std::setw(kEntityWidth) << "exit"
             << "exit\n\n";
 }

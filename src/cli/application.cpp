@@ -30,6 +30,7 @@ Application::Application(bool autosave_enabled, int autosave_interval,
   }
 }
 
+/* preferred over std::system("clear"): no subprocess, no shell dependency */
 void Application::cmdClear() { std::cout << "\033[2J\033[H"; }
 
 void Application::cmdSave(bool silent) {
