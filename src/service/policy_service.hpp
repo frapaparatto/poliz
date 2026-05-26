@@ -16,9 +16,9 @@ class PolicyService {
       std::string_view client_uuid) const;
   std::vector<domain::Policy> searchPolicy(
       const domain::PolicyFilter& filter) const;
+  double calculateAmount(domain::Policy::PolicyType type, int duration) const;
 
  private:
-  double calculateAmount(domain::Policy::PolicyType type, int duration);
   domain::IPolicyRepository& policy_repo_;
 };
 

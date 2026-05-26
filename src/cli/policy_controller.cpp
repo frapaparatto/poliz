@@ -97,42 +97,6 @@ std::optional<insura::domain::Policy::PolicyStatus> promptPolicyStatus() {
   }
 }
 
-/*
- * Mirrors the pricing table from PolicyService::calculateAmount and ADR-019.
- * Used here for the confirmation preview only: the authoritative calculation
- * stays in the service layer. Row order must match PolicyType enum order.
- */
-constexpr double kDisplayPricingTable[4][4] = {
-    {350.00, 650.00, 1200.00, 1700.00}, /* AUTO   */
-    {150.00, 280.00, 520.00, 740.00},   /* LIFE   */
-    {120.00, 220.00, 400.00, 570.00},   /* HOME   */
-    {200.00, 380.00, 700.00, 1000.00},  /* HEALTH */
-};
-static_assert(std::size(kDisplayPricingTable) == 4,
-              "Display pricing table rows must match PolicyType count (4)");
-
-double previewPolicyAmount(insura::domain::Policy::PolicyType type,
-                           int duration_months) {
-  int col;
-  switch (duration_months) {
-    case 6:
-      col = 0;
-      break;
-    case 12:
-      col = 1;
-      break;
-    case 24:
-      col = 2;
-      break;
-    case 36:
-      col = 3;
-      break;
-    default:
-      return 0.0;
-  }
-  return kDisplayPricingTable[static_cast<int>(type)][col];
-}
-
 }  // namespace
 
 namespace insura::cli {
@@ -252,7 +216,7 @@ void PolicyController::cmdAdd() {
   auto end_date = insura::utils::date::calculateEndDate(data.start_date,
                                                         data.duration_months);
   double preview_amount =
-      previewPolicyAmount(data.policy_type_, data.duration_months);
+      policy_service_.calculateAmount(data.policy_type_, data.duration_months);
 
   std::cout << "\n  End date:  " << end_date << '\n'
             << "  Amount:    " << std::fixed << std::setprecision(2)
@@ -297,7 +261,7 @@ void PolicyController::cmdList() {
   }
 
   std::cout << '\n';
-  PolicyView::displayAll(policy_repo_.findAll(), name_map);
+  PolicyView::displayAll(policies, name_map);
 }
 
 void PolicyController::cmdSearch() {

@@ -151,6 +151,19 @@ struct CrmRepositories {
 
 void cmdExit() { std::exit(0); }
 
+CrmRepositories makeRepositories(const std::string& dirpath,
+                                 const CrmConfig& config) {
+  CrmRepositories repos;
+  repos.client_repo = std::make_unique<insura::data::CsvClientRepository>(
+      dirpath + "/" + config.clients_filename);
+  repos.policy_repo = std::make_unique<insura::data::CsvPolicyRepository>(
+      dirpath + "/" + config.policies_filename);
+  repos.interactions_repo =
+      std::make_unique<insura::data::CsvInteractionRepository>(
+          dirpath + "/" + config.interactions_filename);
+  return repos;
+}
+
 CrmRepositories cmdNew(const CrmConfig& config) {
   std::string dirpath;
   std::cout << "Enter the directory path (default: " << config.default_directory
@@ -163,20 +176,7 @@ CrmRepositories cmdNew(const CrmConfig& config) {
     std::filesystem::create_directory(dirpath);
   }
 
-  std::string client_path = dirpath + "/" + config.clients_filename;
-  std::string policy_path = dirpath + "/" + config.policies_filename;
-  std::string interaction_path = dirpath + "/" + config.interactions_filename;
-
-  CrmRepositories repositories;
-  repositories.client_repo =
-      std::make_unique<insura::data::CsvClientRepository>(client_path);
-  repositories.policy_repo =
-      std::make_unique<insura::data::CsvPolicyRepository>(policy_path);
-  repositories.interactions_repo =
-      std::make_unique<insura::data::CsvInteractionRepository>(
-          interaction_path);
-
-  return repositories;
+  return makeRepositories(dirpath, config);
 }
 
 CrmRepositories cmdLoad(const CrmConfig& config) {
@@ -211,20 +211,7 @@ CrmRepositories cmdLoad(const CrmConfig& config) {
         if (choice == "retry") break;
         if (choice == "new") {
           std::filesystem::create_directory(dirpath);
-          std::string client_path = dirpath + "/" + config.clients_filename;
-          std::string policy_path = dirpath + "/" + config.policies_filename;
-          std::string interaction_path =
-              dirpath + "/" + config.interactions_filename;
-
-          CrmRepositories repositories;
-          repositories.client_repo =
-              std::make_unique<insura::data::CsvClientRepository>(client_path);
-          repositories.policy_repo =
-              std::make_unique<insura::data::CsvPolicyRepository>(policy_path);
-          repositories.interactions_repo =
-              std::make_unique<insura::data::CsvInteractionRepository>(
-                  interaction_path);
-          return repositories;
+          return makeRepositories(dirpath, config);
         }
         if (choice == "back") return {};
         if (choice == "exit") cmdExit();
@@ -233,19 +220,7 @@ CrmRepositories cmdLoad(const CrmConfig& config) {
       continue;
     }
 
-    std::string client_path = dirpath + "/" + config.clients_filename;
-    std::string policy_path = dirpath + "/" + config.policies_filename;
-    std::string interactions_path =
-        dirpath + "/" + config.interactions_filename;
-
-    CrmRepositories repositories;
-    repositories.client_repo =
-        std::make_unique<insura::data::CsvClientRepository>(client_path);
-    repositories.policy_repo =
-        std::make_unique<insura::data::CsvPolicyRepository>(policy_path);
-    repositories.interactions_repo =
-        std::make_unique<insura::data::CsvInteractionRepository>(
-            interactions_path);
+    auto repositories = makeRepositories(dirpath, config);
 
     try {
       repositories.client_repo->load();

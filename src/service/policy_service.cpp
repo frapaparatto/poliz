@@ -9,7 +9,7 @@
 namespace insura::service {
 
 double PolicyService::calculateAmount(domain::Policy::PolicyType type,
-                                      int duration) {
+                                      int duration) const {
   /*
    * Pricing table: rows must match PolicyType enum declaration order.
    * This function relies on that ordering. A static_assert guards the
