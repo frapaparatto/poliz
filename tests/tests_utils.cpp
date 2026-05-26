@@ -76,23 +76,6 @@ TEST_CASE("isDigitsOnly", "[domain][utils]") {
   }
 }
 
-TEST_CASE("isValidPhone", "[domain][utils]") {
-  SECTION("empty string is invalid") {
-    REQUIRE_FALSE(insura::utils::isValidPhone(""));
-  }
-  SECTION("digits only is valid") {
-    REQUIRE(insura::utils::isValidPhone("3401234567"));
-  }
-
-  /* About the +39 case, I think I should evaluate if
-   * make that invalid or allow user to add +prefix number
-   * and also number as valid and then standardize in
-   * view or saving it in the standardized way*/
-  SECTION("non-digit characters make it invalid") {
-    CHECK_FALSE(insura::utils::isValidPhone("+39 3401234567"));
-    CHECK_FALSE(insura::utils::isValidPhone("340-123-4567"));
-  }
-}
 
 TEST_CASE("isValidCsvFile", "[domain][utils]") {
   SECTION(".csv extension is valid") {

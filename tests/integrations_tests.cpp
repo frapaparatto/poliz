@@ -10,8 +10,12 @@
 #include "../src/domain/client.hpp"
 #include "../src/domain/client_data.hpp"
 #include "../src/domain/interaction.hpp"
+#include "../src/domain/interaction_data.hpp"
 #include "../src/domain/policy.hpp"
+#include "../src/domain/policy_data.hpp"
 #include "../src/service/client_service.hpp"
+#include "../src/service/interaction_service.hpp"
+#include "../src/service/policy_service.hpp"
 
 TEST_CASE("Client CSV round-trip preserves data", "[integration]") {
   auto tmp = std::filesystem::temp_directory_path() / "test_client_data.csv";
@@ -479,6 +483,186 @@ TEST_CASE(
   std::filesystem::remove(tmp_clients);
   std::filesystem::remove(tmp_policies);
   std::filesystem::remove(tmp_interactions);
+}
+
+TEST_CASE("ClientService::editClient preserves unchanged fields", "[integration][service]") {
+  auto tmp_clients =
+      std::filesystem::temp_directory_path() / "test_edit_clients.csv";
+  auto tmp_policies =
+      std::filesystem::temp_directory_path() / "test_edit_policies.csv";
+  auto tmp_interactions =
+      std::filesystem::temp_directory_path() / "test_edit_interactions.csv";
+
+  insura::data::CsvClientRepository client_repo(tmp_clients.string());
+  insura::data::CsvPolicyRepository policy_repo(tmp_policies.string());
+  insura::data::CsvInteractionRepository interaction_repo(
+      tmp_interactions.string());
+  insura::service::ClientService service(client_repo, policy_repo,
+                                         interaction_repo);
+
+  insura::domain::ClientData original;
+  original.first_name = "Ada";
+  original.last_name = "Lovelace";
+  original.email = "ada@babbage.io";
+  original.city = std::string("London");
+  service.addClient(original);
+
+  std::string uuid = client_repo.findAll()[0].getUuid();
+
+  insura::domain::ClientData patch;
+  patch.first_name = "Augusta";
+  service.editClient(uuid, patch);
+
+  auto result = client_repo.findByUuid(uuid);
+  REQUIRE(result.has_value());
+  CHECK(result->getFirstName() == "Augusta");
+  CHECK(result->getLastName() == "Lovelace");
+  CHECK(result->getEmail() == "ada@babbage.io");
+  CHECK(result->getCity().value() == "London");
+
+  std::filesystem::remove(tmp_clients);
+  std::filesystem::remove(tmp_policies);
+  std::filesystem::remove(tmp_interactions);
+}
+
+TEST_CASE("ClientService::editClient rejects duplicate email on change", "[integration][service]") {
+  auto tmp_clients =
+      std::filesystem::temp_directory_path() / "test_edit_email_clients.csv";
+  auto tmp_policies =
+      std::filesystem::temp_directory_path() / "test_edit_email_policies.csv";
+  auto tmp_interactions =
+      std::filesystem::temp_directory_path() /
+      "test_edit_email_interactions.csv";
+
+  insura::data::CsvClientRepository client_repo(tmp_clients.string());
+  insura::data::CsvPolicyRepository policy_repo(tmp_policies.string());
+  insura::data::CsvInteractionRepository interaction_repo(
+      tmp_interactions.string());
+  insura::service::ClientService service(client_repo, policy_repo,
+                                         interaction_repo);
+
+  insura::domain::ClientData first;
+  first.first_name = "Ada";
+  first.last_name = "Lovelace";
+  first.email = "ada@babbage.io";
+  service.addClient(first);
+
+  insura::domain::ClientData second;
+  second.first_name = "Charles";
+  second.last_name = "Babbage";
+  second.email = "babbage@engine.io";
+  service.addClient(second);
+
+  std::string uuid = client_repo.findByEmail("babbage@engine.io")->getUuid();
+
+  insura::domain::ClientData patch;
+  patch.email = "ada@babbage.io";
+  REQUIRE_THROWS_AS(service.editClient(uuid, patch), std::invalid_argument);
+
+  std::filesystem::remove(tmp_clients);
+  std::filesystem::remove(tmp_policies);
+  std::filesystem::remove(tmp_interactions);
+}
+
+TEST_CASE("PolicyService::editPolicy updates status and notes", "[integration][service]") {
+  auto tmp_policies =
+      std::filesystem::temp_directory_path() / "test_edit_policy.csv";
+
+  insura::data::CsvPolicyRepository policy_repo(tmp_policies.string());
+  insura::service::PolicyService service(policy_repo);
+
+  insura::domain::Policy policy(
+      "client-uuid", insura::domain::Policy::PolicyType::HOME, "2026-01-01",
+      std::string("2027-01-01"), 1800.00,
+      insura::domain::Policy::PolicyStatus::PENDING, std::nullopt);
+  policy_repo.insertPolicy(policy);
+  std::string uuid = policy.getUuid();
+
+  insura::domain::PolicyData patch;
+  patch.policy_status = insura::domain::Policy::PolicyStatus::ACTIVE;
+  patch.notes = std::string("Renewed");
+  service.editPolicy(uuid, patch);
+
+  auto result = policy_repo.findByUuid(uuid);
+  REQUIRE(result.has_value());
+  CHECK(result->getPolicyStatus() ==
+        insura::domain::Policy::PolicyStatus::ACTIVE);
+  CHECK(result->getPolicyNotes().value() == "Renewed");
+  CHECK(result->getPolicyType() == insura::domain::Policy::PolicyType::HOME);
+  CHECK(result->getPolicyAmount() == Catch::Approx(1800.00));
+
+  std::filesystem::remove(tmp_policies);
+}
+
+TEST_CASE("InteractionService::editAppointment updates mutable fields", "[integration][service]") {
+  auto tmp =
+      std::filesystem::temp_directory_path() / "test_edit_appointment.csv";
+
+  insura::data::CsvInteractionRepository repo(tmp.string());
+  insura::service::InteractionService service(repo);
+
+  insura::domain::AppointmentData data;
+  data.client_uuid = "client-uuid";
+  data.date = "2026-06-01";
+  data.time = "09:00";
+  data.duration = 30;
+  service.addAppointment(data);
+
+  std::string uuid = repo.findAll()[0]->getUuid();
+
+  insura::domain::AppointmentData patch;
+  patch.time = "14:00";
+  patch.duration = 60;
+  patch.notes = std::string("Rescheduled");
+  service.editAppointment(uuid, patch);
+
+  auto result = repo.findByUuid(uuid);
+  REQUIRE(result != nullptr);
+  auto* appt = dynamic_cast<insura::domain::Appointment*>(result.get());
+  REQUIRE(appt != nullptr);
+  CHECK(appt->getAppointmentTime() == "14:00");
+  CHECK(appt->getDuration() == 60);
+  CHECK(appt->getNotes().value() == "Rescheduled");
+  CHECK(appt->getDate() == "2026-06-01");
+
+  std::filesystem::remove(tmp);
+}
+
+TEST_CASE("InteractionService::editContract updates status and notes", "[integration][service]") {
+  auto tmp =
+      std::filesystem::temp_directory_path() / "test_edit_contract.csv";
+
+  insura::data::CsvInteractionRepository repo(tmp.string());
+  insura::service::InteractionService service(repo);
+
+  insura::domain::ContractData data;
+  data.client_uuid = "client-uuid";
+  data.date = "2026-06-01";
+  data.value = 2400.00;
+  data.product_name = "Home Plan A";
+  data.signed_date = "2026-06-01";
+  data.contract_years = 1;
+  data.status = insura::domain::Contract::ContractStatus::DRAFT;
+  service.addContract(data);
+
+  std::string uuid = repo.findAll()[0]->getUuid();
+
+  insura::domain::ContractData patch;
+  patch.status = insura::domain::Contract::ContractStatus::SIGNED;
+  patch.notes = std::string("Signed by client");
+  service.editContract(uuid, patch);
+
+  auto result = repo.findByUuid(uuid);
+  REQUIRE(result != nullptr);
+  auto* contract = dynamic_cast<insura::domain::Contract*>(result.get());
+  REQUIRE(contract != nullptr);
+  CHECK(contract->getStatus() ==
+        insura::domain::Contract::ContractStatus::SIGNED);
+  CHECK(contract->getNotes().value() == "Signed by client");
+  CHECK(contract->getValue() == Catch::Approx(2400.00));
+  CHECK(contract->getProductName() == "Home Plan A");
+
+  std::filesystem::remove(tmp);
 }
 
 TEST_CASE("ClientService rejects duplicate email", "[integration]") {
