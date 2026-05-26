@@ -50,11 +50,6 @@ const std::optional<std::string>& Interaction::getNotes() const {
 const std::string& Interaction::getCreatedAt() const { return created_at_; }
 const std::string& Interaction::getUpdatedAt() const { return updated_at_; }
 
-void Interaction::setType(InteractionType type) {
-  interaction_type_ = type;
-  updated_at_ = utils::currentTimestamp();
-}
-
 void Interaction::setDate(const std::string& date) {
   if (date.empty()) throw std::invalid_argument("date cannot be empty");
   if (!utils::date::isValidDate(date))

@@ -31,7 +31,6 @@ class Client {
          std::optional<std::string> postal_code, ClientStatus status,
          std::optional<std::string> notes);
 
-  // Loading constructor
   Client(std::string uuid, std::string first_name, std::string last_name,
          std::string email, std::optional<std::string> phone,
          std::optional<std::string> job_title,
@@ -58,7 +57,6 @@ class Client {
   void setCity(const std::string& city);
   void setPostalCode(const std::string& postal_code);
 
-  /* TODO: rename it in setClientStatus */
   void setStatus(ClientStatus status);
   void setNotes(const std::string& notes);
 
@@ -70,13 +68,9 @@ class Client {
   const std::optional<std::string>& getPostalCode() const;
   const std::optional<std::string>& getNotes() const;
 
-  /* TODO: rename it in getClientStatus */
   ClientStatus getStatus() const;
 
  private:
-  /* evaluate to add birthay date since CRM may wants to know in order to
-   * create custom offers for this special day in order to lead the customer
-   * make make another contract */
   std::string uuid_;
   std::string first_name_;
   std::string last_name_;

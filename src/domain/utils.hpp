@@ -9,10 +9,17 @@ std::optional<std::string> stringToOptional(const std::string& s);
 std::string currentTimestamp();
 bool isValidEmail(std::string_view email);
 bool isDigitsOnly(std::string_view str);
-bool isValidPhone(std::string_view phone);
 bool isValidCsvFile(const std::filesystem::path& path);
 
-/* I have to create helper like isValidTime for appointments*/
+inline std::tm safe_localtime(const std::time_t& t) {
+  std::tm buf;
+#if defined(_WIN32)
+  localtime_s(&buf, &t);
+#else
+  localtime_r(&t, &buf);
+#endif
+  return buf;
+}
 
 namespace date {
 bool isValidDate(const std::string& date);

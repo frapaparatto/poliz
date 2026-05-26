@@ -1,12 +1,12 @@
 #include "utils.hpp"
 
 #include <algorithm>
-#include <cctype>
 #include <array>
+#include <cctype>
 #include <chrono>
 #include <ctime>
-#include <mutex>
 #include <iomanip>
+#include <mutex>
 #include <random>
 #include <regex>
 #include <sstream>
@@ -29,10 +29,6 @@ namespace insura::utils {
  * Static variables are initialised once on the first call and reused
  * on subsequent calls to avoid recreating the generator and
  * distributions on every invocation.
- *
- * TODO: not thread-safe due to shared static state. If UUID generation
- * is needed across multiple threads, add a mutex around this function.
- * I must revisit in Milestone 3 when the auto-save thread is introduced.
  *
  */
 std::optional<std::string> stringToOptional(const std::string& s) {
@@ -75,10 +71,10 @@ std::string currentTimestamp() {
   auto now = std::chrono::system_clock::now();
   time_t t = std::chrono::system_clock::to_time_t(now);
 
-  std::tm* tm = std::localtime(&t);
+  std::tm tm = safe_localtime(t);
   std::ostringstream ss;
 
-  ss << std::put_time(tm, "%Y-%m-%d %H:%M:%S");
+  ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
   return ss.str();
 };
 
@@ -109,12 +105,6 @@ bool isDigitsOnly(std::string_view str) {
          }) == str.end();
 }
 
-bool isValidPhone(std::string_view phone) {
-  /* TODO: standardise phone display: add country-code prefix (e.g. +39)
-   * and decide whether to keep phone as std::string or introduce a dedicated
-   * type/format. Handle at end-of-project cleanup. */
-  return isDigitsOnly(phone);
-}
 namespace date {
 
 std::string calculateEndDate(const std::string& start_date, int duration) {
@@ -179,10 +169,10 @@ bool isValidDate(const std::string& date) {
 std::string today() {
   auto now = std::chrono::system_clock::now();
   std::time_t t = std::chrono::system_clock::to_time_t(now);
-  std::tm* tm = std::localtime(&t);
+  std::tm tm = safe_localtime(t);
 
   std::ostringstream oss;
-  oss << std::put_time(tm, "%Y-%m-%d");
+  oss << std::put_time(&tm, "%Y-%m-%d");
   return oss.str();
 }
 

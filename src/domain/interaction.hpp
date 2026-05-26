@@ -30,7 +30,6 @@ class Interaction {
   const std::string& getCreatedAt() const;
   const std::string& getUpdatedAt() const;
 
-  void setType(InteractionType type);
   void setDate(const std::string& date);
   void setNotes(const std::string& notes);
 
