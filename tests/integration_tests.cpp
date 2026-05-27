@@ -698,3 +698,35 @@ TEST_CASE("ClientService rejects duplicate email", "[integration]") {
   std::filesystem::remove(tmp_policies);
   std::filesystem::remove(tmp_interactions);
 }
+
+TEST_CASE("PolicyService::addPolicy calculates end_date and amount from duration", "[integration][service]") {
+  auto tmp = std::filesystem::temp_directory_path() / "test_add_policy_service.csv";
+
+  insura::data::CsvPolicyRepository repo(tmp.string());
+  insura::service::PolicyService service(repo);
+
+  insura::domain::PolicyData data;
+  data.client_uuid = "client-uuid";
+  data.policy_type_ = insura::domain::Policy::PolicyType::AUTO;
+  data.start_date = "2026-01-01";
+  data.duration_months = 12;
+
+  service.addPolicy(data);
+
+  repo.save();
+
+  insura::data::CsvPolicyRepository repo2(tmp.string());
+  repo2.load();
+  auto all = repo2.findAll();
+
+  REQUIRE(all.size() == 1);
+  const auto& p = all[0];
+  CHECK(p.getClientUuid() == "client-uuid");
+  CHECK(p.getPolicyType() == insura::domain::Policy::PolicyType::AUTO);
+  CHECK(p.getPolicyStartDate() == "2026-01-01");
+  CHECK(p.getPolicyEndDate().value() == "2027-01-01");
+  CHECK(p.getPolicyAmount() == Catch::Approx(650.00));
+  CHECK(p.getPolicyStatus() == insura::domain::Policy::PolicyStatus::PENDING);
+
+  std::filesystem::remove(tmp);
+}

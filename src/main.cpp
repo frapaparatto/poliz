@@ -15,24 +15,6 @@
 #include "./service/policy_service.hpp"
 #include "service/interaction_service.hpp"
 
-// TODO END OF THE PROJECT: order all notes in docs/personal becasue lots of
-// them needs to be used together with daily notes e.g. all pattern could became
-// feynman-like files to explain pattern better. Explaining most important
-// patterns could be a good idea
-
-// TODO: address autocomplete via geocoding API (Google Places or Nominatim) -
-// implement after TUI search is complete
-// TODO: at the end of the project, adjust all docs journal notes and remove the
-// - that AI added in each note
-// TODO: add in the readme the section that explains how I used AI
-
-/* Default filepath used when the user starts a fresh session without specifying
- * one. Hardcoded for now.
- * TODO: replace with a value read from a config file (e.g. insura.conf or
- * ~/.insura/config). The config should store at minimum: default_filepath and
- * optionally last_opened_filepath. main.cpp reads it here and passes the
- * resolved path down — the repo stays unaware of any config. */
-
 namespace {
 
 struct CrmConfig {
