@@ -32,23 +32,12 @@ background, clean shutdown with a save prompt when there is unsaved data.
 ## Architecture
 
 The codebase is organized into four layers. Dependencies flow strictly inward:
-no layer knows what is above it.
-
-```
-main.cpp (composition root)
-        |
-        v
-   insura::cli  (presentation: controllers, views, menu, cli helpers)
-        |
-        v
- insura::service  (business logic: client, policy, interaction, auto-save)
-        |
-        v
-   insura::data  (persistence: CSV repositories, RAII file handle)
-        |
-        v
- insura::domain  (entities, repository interfaces, domain utilities)
-```
+no layer knows what is above it. main.cpp is the composition root; it constructs
+all repositories, services, and controllers and passes them into Application.
+Application belongs to insura::cli and calls into insura::service. The service
+layer calls into insura::domain through repository interfaces. insura::data
+implements those interfaces and also depends on insura::domain. Nothing in a
+lower layer knows that a higher layer exists.
 
 - **insura::domain**: entities, repository interfaces, enums, DTOs, and pure
   utilities (string ops, date arithmetic, validation, UUID). No I/O.
@@ -110,7 +99,6 @@ Or run the test binary directly for verbose Catch2 output:
 ```bash
 ./build-debug/tests/crm_tests
 ./build-debug/tests/crm_tests --reporter compact   # compact output
-./build-debug/tests/crm_tests [integration]        # integration tests only
 ```
 
 ### CMake target layout
