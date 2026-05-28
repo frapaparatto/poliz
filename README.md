@@ -331,3 +331,11 @@ Only after that verification step did AI write the final note, using my
 reasoning and explanations as the content source but producing cleaner English
 prose. The ideas and reasoning in every note are mine. The writing quality is
 AI-assisted.
+
+## Future Improvements
+
+- Replace CSV persistence with a relational database for transactional writes and indexed queries.
+- Interactive search with real-time filtering as the user types.
+- Stricter input validation: time format enforcement (HH:MM 24-hour), phone number country-code normalization, policy deduplication on type + client + start date.
+- Address autocomplete via geocoding API.
+- Performance test suite with generated datasets to measure load, save, and search under realistic volume.
