@@ -33,6 +33,11 @@ std::string fmtAmount(double v) {
 }  // namespace
 
 void ClientView::displayAll(const std::vector<domain::Client>& clients) {
+  if (clients.empty()) {
+    std::cout << "No clients found.\n";
+    return;
+  }
+
   std::cout << std::left << std::setw(kColWidth) << "First Name"
             << std::setw(kColWidth) << "Last Name"
             << std::setw(kEmailColWidth) << "Email"
