@@ -22,6 +22,19 @@ from `Interaction`) is treated as part of the domain model and is
 documented in `docs/architecture.md` and ADR-025, not as a separate
 decision record here.
 
+**ADR-003: Interaction as Polymorphic Entity**
+Interaction is an abstract base class. Appointment and Contract derive
+from it with their own fields. Storing by value in a vector would cause
+object slicing: derived fields are lost when copied through the base
+type. The repository stores `std::vector<std::unique_ptr<Interaction>>`
+to avoid this. The domain distinction between appointment and contract
+(different fields, different lifecycle, different business meaning) maps
+naturally to different types sharing a common interface rather than a
+single flat struct with optional fields. No dedicated ADR file was
+created for this decision. Full rationale, retrieval mechanics, and the
+virtual `clone()` pattern are documented in `docs/architecture.md`.
+The thread-safe retrieval consequence is recorded in ADR-025.
+
 **ADR-004: Startup Flow**
 New / Load menu at startup. Explicit user choice every time.
 Implemented in `main.cpp` via named helpers in an anonymous namespace
@@ -71,7 +84,7 @@ Directory-based path strategy replaced the single-filepath default.
 The full strategy lives in ADR-018.
 
 **ADR-015: Performance Validation**
-Not implemented. Deliberately deferred post-submission. Seed script and
+Not implemented. Deliberately deferred. Seed script and
 `std::chrono` timing remain the planned approach.
 
 **ADR-017: Application Refactoring (Orchestrator + Controller)**
@@ -177,6 +190,13 @@ integration are added.
 (e.g. `+39` for the Italian market) and length checks are not enforced.
 Phone numbers are used only for display, not for outbound calls or
 SMS, so a stricter format does not improve correctness at this stage.
+
+**Domain constructors accept whitespace-only strings for first_name and last_name**
+The `Client` new-object constructor checks `first_name.empty()` and
+`last_name.empty()` but not whitespace-only strings. `promptRequired`
+in `cli_helper.cpp` trims input before calling constructors, closing
+the gap in normal CLI use. A non-CLI caller would need to trim
+independently.
 
 **Policy amount and end_date are system-derived, not user input**
 The user only chooses type, duration, and start_date when creating or

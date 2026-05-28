@@ -49,9 +49,14 @@ lower layer knows that a higher layer exists.
   resolution helpers. `Application` is a thin orchestrator owning one controller
   per entity.
 
-CMake enforces the dependency graph physically: each layer is a separate static
-library, and `target_link_libraries` mirrors the dependency rules. A violation
-causes a linker error.
+insura::service and insura::data are independent siblings: both depend on
+insura::domain, neither depends on the other. Service calls through repository
+interfaces defined in the domain; data implements them. main.cpp is the only
+place that instantiates all four layers together.
+
+CMake enforces the dependency graph at the link level: each layer is a separate
+static library and `target_link_libraries` mirrors the allowed dependencies.
+A symbol from an unlisted layer causes a linker error.
 
 
 ## Building

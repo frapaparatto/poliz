@@ -64,29 +64,27 @@ to the repository's internal storage.
 
 ## Layer Architecture
 
-Dependencies flow inward. No layer knows what is above it. The diagram
-below shows the full stack. Each arrow means "depends on."
+Dependencies flow inward. No layer knows what is above it. The four
+libraries and their direct dependencies are:
 
-```
-main.cpp (composition root)
-    |
-    v
-insura::cli  (Application, controllers, views, cli_helper)
-    |
-    v
-insura::service  (ClientService, PolicyService, InteractionService, AutoSaveService)
-    |
-    v
-insura::data  (CsvClientRepository, CsvPolicyRepository, CsvInteractionRepository, FileHandler)
-    |
-    v
-insura::domain  (entities, repository interfaces, DTOs, enums, utils, strops)
-```
+- insura::domain depends on nothing else. All other layers depend on it.
+- insura::data depends on insura::domain. It implements the repository
+  interfaces defined there and has no knowledge of insura::service.
+- insura::service depends on insura::domain. It holds repository interface
+  references and has no knowledge of insura::data or how persistence works.
+- insura::cli depends on insura::domain and insura::service. It has no
+  knowledge of insura::data.
+- main.cpp (the composition root) is the only translation unit that
+  instantiates all four layers and wires them together.
 
-CMake enforces this graph. Each layer is a separate static library and
-`target_link_libraries` mirrors the allowed dependencies. A layer that
-imports something it shouldn't causes a linker error rather than a
-runtime surprise.
+insura::service and insura::data are siblings: both depend on
+insura::domain independently. Service calls through the repository
+interfaces; data implements them. Neither depends on the other.
+
+CMake enforces the dependency graph at the link level: each layer is a
+separate static library and `target_link_libraries` mirrors the allowed
+dependencies. A symbol from an unlisted layer causes a linker error rather
+than a runtime surprise.
 
 ### Domain Layer (insura::domain)
 
