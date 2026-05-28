@@ -272,20 +272,7 @@ with typed callbacks for five fields is disproportionate to the problem.
 
 ## Architecture Decision Records
 
-ADRs live in `docs/adr/`. Each major structural decision has its own file.
-Smaller decided decisions are consolidated in `docs/adr/00_backlog.md`.
-
-| ADR | Topic |
-|---|---|
-| ADR-017 | Application refactoring: orchestrator + controller pattern |
-| ADR-018 | File path strategy: directory-based multi-entity persistence |
-| ADR-019 | Policy business rules and fixed pricing model |
-| ADR-020 | Error handling strategy (assert, exception, optional) |
-| ADR-021 | Testing strategy (Catch2, no mocks) |
-| ADR-022 | Policy display with client name resolution |
-| ADR-023 | Configuration system design |
-| ADR-024 | Auto-save service design and thread safety |
-| ADR-025 | Interaction repository clone for safe polymorphic retrieval |
+All architecture decision records live in docs/adr/. The index is docs/adr/00_backlog.md.
 
 ## AI Usage
 

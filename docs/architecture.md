@@ -337,23 +337,7 @@ They are the composition root, not a layer.
 
 ## Key Design Decisions
 
-| Decision                                | Choice                                                        | ADR     |
-| --------------------------------------- | ------------------------------------------------------------- | ------- |
-| Primary key                             | UUID v4 surrogate; email as user-facing unique constraint     | 001     |
-| Policy as independent entity            | Separate entity with `client_uuid` foreign reference          | 002     |
-| CSV schema                              | Comma delimiter, three columns for address, empty for optional | 007     |
-| UUID generation                         | Manual `mt19937` v4, static mutex for thread safety           | 008     |
-| Date representation                     | Plain `std::string` YYYY-MM-DD, `std::chrono` deferred        | 009     |
-| Delete semantics                        | Hard delete with cascade in `ClientService::deleteClient`      | 010     |
-| Application split                       | Thin orchestrator + per-entity controllers                    | 017     |
-| Persistence layout                      | One directory, one CSV per entity                             | 018     |
-| Policy pricing and immutability         | Fixed 4 x 4 pricing table; amount and end_date system-derived | 019     |
-| Error handling                          | assert for programmer errors, exceptions for runtime, optional for absence, belt-and-suspenders on destructive ops | 020     |
-| Testing                                 | Catch2 v3.4.0 via FetchContent; no mocks; real temp files     | 021     |
-| Policy display with client name         | `resolvePolicy` returns `pair<Policy, Client>`                | 022     |
-| Configuration                           | Flat key=value `insurapro.conf`, `CrmConfig` with defaults    | 023     |
-| Auto-save threading                     | One background thread, per-repo mutex, condition variable     | 024     |
-| Polymorphic Interaction retrieval       | Virtual `clone()`, `unique_ptr<Interaction>` storage           | 025     |
+All architecture decision records live in docs/adr/. The index is docs/adr/00_backlog.md.
 
 ## C++ Conventions
 
