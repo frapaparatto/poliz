@@ -323,3 +323,12 @@ was always manual first. New language concepts were always studied and
 implemented by hand before AI was involved. The overall structure, layer
 boundaries, interface designs, and data model reflect independent design choices
 made before any AI consultation.
+
+The study notes and documentation files in docs/ were written by AI after a
+specific workflow. Each note started with a discussion where I explained my
+understanding of the topic in my own words. AI asked questions, corrected
+misconceptions, and challenged assumptions until the understanding was verified.
+Only after that verification step did AI write the final note, using my
+reasoning and explanations as the content source but producing cleaner English
+prose. The ideas and reasoning in every note are mine. The writing quality is
+AI-assisted.

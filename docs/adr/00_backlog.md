@@ -210,3 +210,51 @@ base class rather than `private`. Derived class setters (`setTime`,
 on `Contract`) need to update `updated_at_` when a field changes.
 Making it `protected` avoids a base-class setter that would exist only
 for this internal use.
+
+**Cascade delete on `deleteClient`**
+`ClientService::deleteClient` does not just erase the client record.
+It first fetches all policies for the client uuid via
+`policies_.findByClientUuid` and removes each one, then fetches all
+interactions for that uuid and removes each one, then finally removes
+the client. The cascade is a business rule: a client has no meaning
+without their policies and interactions, and orphaned policies cannot
+be displayed because policy views resolve the client name. The
+ordering (children first, parent last) keeps the policy and
+interaction lookups valid for as long as the cascade is running. Hard
+delete was chosen over soft delete in ADR-010; the cascade is the
+consequence of that choice.
+
+**`ClientService` depends on all three repositories**
+`ClientService` is constructed with `IClientRepository&`,
+`IPolicyRepository&`, and `IInteractionRepository&`. This is the only
+service that holds references to repositories other than its own.
+A reader would expect each service to own exactly one repository, but
+the cascade delete above forces the cross-entity dependency: the
+client service is the one place that knows the "delete a client also
+deletes their policies and interactions" rule, so it needs write
+access to all three stores. The alternative (a coordinator at a higher
+layer) was rejected because no other operation needs the same
+cross-entity write capability.
+
+**`mutable dirty_` and `mutable mtx_` on logically const `save`**
+Each CSV repository declares `mutable bool dirty_ = false` and
+`mutable std::mutex mtx_`. The `save()` method is `const` at the
+interface level (and `findAll`, `findByUuid`, `findByEmail` are also
+`const`) but acquires the mutex and reads or writes `dirty_` through
+`mutable`. The `mutable` on the mutex is idiomatic C++11: a mutex is
+synchronization machinery, not part of the object's logical state.
+The `mutable` on `dirty_` is the deliberate part: dirty tracking is
+bookkeeping for the auto-save thread, not data the caller can observe
+or change. `save()` being `const` says "saving does not modify the
+records I store"; the auto-save flag is below that surface.
+
+**`filterByType` and `filterByDate` are linear scans**
+`CsvInteractionRepository::filterByType` and `filterByDate` lock the
+repository mutex and walk the full `interactions_` vector, cloning
+matches into the result. There is no index, no sorted structure, no
+short-circuit. This is fine at the current scale (interactions are
+created one at a time by a human, so the vector stays small) and the
+filter methods exist primarily because the interaction controller
+search flow needs them. The right place for an index, if one is ever
+needed, is the repository implementation, not the interface; the
+interface contract stays the same.

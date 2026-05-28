@@ -44,6 +44,14 @@ class IInteractionRepository {
   virtual void updateInteraction(
       std::unique_ptr<Interaction> updated) = 0;
 
+  /*
+   * Linear scan in the current CSV implementation: the repository
+   * locks the mutex, walks the full vector, clones each match. Fine
+   * at the current scale because interactions are entered one at a
+   * time by a human. If the dataset grows past the point where this
+   * matters, the right place for an index is the concrete repository,
+   * not the interface.
+   */
   virtual std::vector<std::unique_ptr<Interaction>> filterByType(
       Interaction::InteractionType type) const = 0;
   virtual std::vector<std::unique_ptr<Interaction>> filterByDate(

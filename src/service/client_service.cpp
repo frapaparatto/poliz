@@ -42,6 +42,13 @@ void ClientService::deleteClient(std::string_view uuid) {
   assert(client.has_value() && "deleteClient: UUID not found");
   if (!client) throw std::invalid_argument("client not found");
 
+  /*
+   * Cascade: a client has no meaning without their policies and
+   * interactions, and policy views resolve the client name on every
+   * render, so orphaned policies would be unrenderable. Children are
+   * removed first, parent last, so the lookups stay valid while the
+   * cascade runs.
+   */
   auto client_policies = policies_.findByClientUuid(uuid);
 
   for (const auto& policy : client_policies) {

@@ -6,6 +6,14 @@
 
 namespace insura::service {
 
+/*
+ * Holds references to all three repositories, not just the client
+ * repository. The cascade in deleteClient (remove client's policies
+ * and interactions before the client itself) is the only operation
+ * that needs cross-entity write access, and it lives here because
+ * the client service is the one place that owns the "delete client
+ * means delete their data" rule.
+ */
 class ClientService {
  public:
   ClientService(domain::IClientRepository& repo,

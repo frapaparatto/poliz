@@ -71,6 +71,15 @@ namespace insura::domain {
 
 class IClientRepository {
  public:
+  /*
+   * save and the read methods are const at the interface level, but
+   * concrete implementations need to write to a dirty flag and lock
+   * an internal mutex. Both members are declared mutable in the CSV
+   * implementations: dirty tracking is bookkeeping for the auto-save
+   * thread, not data the caller can observe; the mutex is
+   * synchronization machinery, not part of the object's logical
+   * state.
+   */
   virtual void save() const = 0;
   virtual bool isDirty() const = 0;
   virtual void insertClient(Client client) = 0;
