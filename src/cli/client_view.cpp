@@ -5,9 +5,9 @@
 #include <sstream>
 #include <string>
 
+#include "./cli_helper.hpp"
 #include "../domain/policy_status.hpp"
-#include "cli_helper.hpp"
-#include "client_status.hpp"
+#include "../domain/client_status.hpp"
 
 namespace insura::cli {
 
@@ -31,9 +31,6 @@ std::string fmtAmount(double v) {
   return ss.str();
 }
 }  // namespace
-
-/* TODO: understand which informations are the most useful to display, for now
- * it's ok to leave those */
 
 void ClientView::displayAll(const std::vector<domain::Client>& clients) {
   std::cout << std::left << std::setw(kColWidth) << "First Name"
@@ -79,7 +76,7 @@ void ClientView::displayPolicies(const std::vector<domain::Policy>& policies) {
             << kPolicySep << '\n';
 
   for (const auto& p : policies) {
-    const std::string amt = fmtAmount(p.getPolicyAmount());
+    const std::string amount = fmtAmount(p.getPolicyAmount());
     const std::string end_date = p.getPolicyEndDate().value_or("N/A");
     const std::string range = p.getPolicyStartDate() + " → " + end_date;
 
@@ -87,7 +84,7 @@ void ClientView::displayPolicies(const std::vector<domain::Policy>& policies) {
               << domain::policyTypeToString(p.getPolicyType())
               << std::setw(kPStatusWidth)
               << domain::policyStatusToString(p.getPolicyStatus())
-              << std::setw(kPAmountWidth + 2) << amt << range << '\n';
+              << std::setw(kPAmountWidth + 2) << amount << range << '\n';
   }
 }
 

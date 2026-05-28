@@ -14,11 +14,6 @@
 
 namespace {
 
-/* CLI-layer format validators: kept here for immediate re-prompt UX.
- * Domain-layer checks in PolicyService remain the authoritative last
- * line of defence and must not be removed. */
-
-/* ordered to match enum declaration; index i corresponds to menu choice i+1 */
 constexpr insura::domain::Policy::PolicyType kPolicyTypeOptions[] = {
     insura::domain::Policy::PolicyType::AUTO,
     insura::domain::Policy::PolicyType::LIFE,
@@ -72,9 +67,7 @@ int promptPolicyDuration() {
   }
 }
 
-/* Returns nullopt when the user presses Enter to accept the default. For
- * cmdAdd the caller treats nullopt as PENDING; for cmdEdit it means keep
- * the current value. */
+/* Returns nullopt when the user presses Enter to accept the default */
 std::optional<insura::domain::Policy::PolicyStatus> promptPolicyStatus() {
   for (int i = 0; i < kPolicyStatusCount; ++i) {
     std::cout << "  " << (i + 1) << ". "
@@ -175,7 +168,6 @@ domain::PolicyData PolicyController::promptPolicyEditData(
 }
 
 void PolicyController::cmdAdd() {
-  /* Step 1: resolve client; UUID stored on the policy, name never persisted */
   std::cout << "Client:\n";
   auto client = resolveClient(client_service_);
   if (!client) return;
@@ -186,15 +178,12 @@ void PolicyController::cmdAdd() {
   domain::PolicyData data;
   data.client_uuid = client->getUuid();
 
-  /* Step 2: policy type */
   std::cout << "\nPolicy type:\n";
   data.policy_type_ = promptPolicyType();
 
-  /* Step 3: duration */
   std::cout << "Duration:\n";
   data.duration_months = promptPolicyDuration();
 
-  /* Step 4: start date: validated before the preview is shown */
   while (true) {
     std::cout << "Start date (YYYY-MM-DD, Enter for today): ";
     std::string date;
@@ -212,7 +201,6 @@ void PolicyController::cmdAdd() {
     break;
   }
 
-  /* Show derived values before the user commits. */
   auto end_date = insura::utils::date::calculateEndDate(data.start_date,
                                                         data.duration_months);
   double preview_amount =
@@ -222,12 +210,9 @@ void PolicyController::cmdAdd() {
             << "  Amount:    " << std::fixed << std::setprecision(2)
             << preview_amount << " EUR\n\n";
 
-  /* Step 5: optional status, nullopt lets the service apply the default
-   * (PENDING) per ADR-019 */
   std::cout << "Status:\n";
   data.policy_status = promptPolicyStatus();
 
-  /* Step 6: optional notes */
   data.notes = promptOptional("Notes (optional): ");
 
   try {
@@ -323,7 +308,7 @@ void PolicyController::cmdSearch() {
   std::cout << '\n';
   PolicyView::displayAll(results, name_map);
 
-  /* Optional drill-down into one entry for full detail */
+  /* optional: user can view detail for one of the results */
   auto clientName = [&](const domain::Policy& p) -> std::string {
     auto it = name_map.find(p.getClientUuid());
     assert(it != name_map.end() && "policy references non-existent client");
@@ -386,8 +371,6 @@ void PolicyController::cmdEdit() {
   domain::PolicyData updated = promptPolicyEditData(policy);
 
   try {
-    /* TODO: evaluate whether "No updates made." should stay or just show
-     * nothing. */
     if (policy_service_.editPolicy(policy.getUuid(), updated))
       std::cout << "\nPolicy updated successfully.\n";
     else

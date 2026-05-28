@@ -32,8 +32,8 @@ bool confirmClient(const domain::Client& client, std::string_view entity);
  *
  * resolveClient: the full "view/edit/delete" pipeline: prompts for a
  * search term, fetches matches, delegates to selectClient when multiple
- * results come back. Returns nullopt only when the term is non-empty but
- * no client is found (not a loop, caller decides whether to retry).
+ * results come back. Returns nullopt on empty input (user goes back) or
+ * when no client matches the term. Caller decides whether to retry.
  * Not intended for cmdSearch, which shows the full results list instead
  * of forcing resolution to one entry.
  */
@@ -64,6 +64,10 @@ resolveInteraction(service::InteractionService& interaction_service,
 /*
  * Truncates a string to max characters, appending "..." when cut.
  * The optional overload returns an empty string when the optional is empty.
+ *
+ * Implemented to avoid that a fields move another one in the 
+ * display functions
+ *
  */
 std::string truncate(const std::string& s, std::size_t max);
 std::string truncate(const std::optional<std::string>& opt, std::size_t max);

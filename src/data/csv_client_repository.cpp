@@ -116,7 +116,7 @@ void CsvClientRepository::save() const {
       out.getStream() << serialize(c) << "\n";
     }
   }
-  std::rename(tmp.c_str(), filepath_.c_str());  // atomic swap
+  std::rename(tmp.c_str(), filepath_.c_str()); 
   dirty_ = false;
 }
 

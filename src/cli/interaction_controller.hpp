@@ -32,6 +32,10 @@ class InteractionController : public IEntityController {
   domain::IInteractionRepository& interaction_repo_;
   service::ClientService& client_service_;
   domain::IClientRepository& client_repo_;
+
+  /* Splitted functions to avoid one monolithic function that 
+   * uses branching for detecting the type and for populating
+   * the correct DTO */
   domain::AppointmentData promptAppointmentEditData(
       const domain::Appointment& current);
   domain::ContractData promptContractEditData(const domain::Contract& current);

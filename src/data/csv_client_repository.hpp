@@ -10,7 +10,8 @@ class CsvClientRepository : public domain::IClientRepository {
  public:
   explicit CsvClientRepository(std::string filepath);
   void load();
-  /* moved here to make it easy to test */
+  /* moved here to make it easy to test instead of keeping it
+   * private */
   void save() const override;
   void insertClient(domain::Client client) override;
   void removeClient(std::string_view uuid) override;

@@ -39,7 +39,6 @@ Policy::Policy(std::string client_uuid, PolicyType policy_type,
   policy_type_ = policy_type;
   start_date_ = std::move(start_date);
 
-  /* I think the check end > start should be handled at cli/service level*/
   end_date_ = std::move(end_date);
   amount_ = amount;
   policy_status_ = policy_status;

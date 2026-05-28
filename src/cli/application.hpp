@@ -33,7 +33,9 @@ class Application {
   IEntityController* active_controller_ = nullptr;
   bool handleAppCmds(const std::string& option);
 
-  /* Application-level commands */
+  /* add a bool silent in order to avoid auto-save thread print out
+   * the save message that is written in the same buffer as the
+   * normal program output so they overlaps */
   void cmdSave(bool silent);
   void cmdExit();
   void cmdClear();

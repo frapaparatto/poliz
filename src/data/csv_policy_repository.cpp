@@ -147,10 +147,6 @@ domain::Policy CsvPolicyRepository::deserialize(const std::string& line) const {
                         utils::stringToOptional(notes), created_at, updated_at);
 }
 
-/* TODO: since the new decision record I've made says that
- * I set default names for files, those checks happen before
- * application starts so filepath exists
- */
 
 void CsvPolicyRepository::load() {
   std::lock_guard<std::mutex> lock(mtx_);

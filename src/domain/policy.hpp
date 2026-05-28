@@ -11,14 +11,6 @@
  */
 
 namespace insura::domain {
-/* TODO: evaluate policy deduplication strategy. Currently no mechanism
- * prevents adding duplicate policies (same type, client, start date).
- * Options to consider at end-of-project polish:
- * 1. Compare type + client_uuid + start_date on add
- * 2. Add a human-readable policy number (auto-generated, persisted,
- *    counter derived from highest existing number on load)
- * 3. Accept duplicates as valid (user corrects manually)
- * Decision deferred: current scope assumes no accidental duplicates. */
 class Policy {
  public:
   enum class PolicyStatus {

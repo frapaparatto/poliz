@@ -47,6 +47,7 @@ void Application::cmdSave(bool silent) {
 void Application::cmdExit() {
   if (autosave_) autosave_->stop();
   bool any_dirty = false;
+
   for (auto& [name, controller] : controllers_) {
     if (controller->isDirty()) {
       any_dirty = true;

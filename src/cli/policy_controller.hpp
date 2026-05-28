@@ -36,10 +36,6 @@ class PolicyController : public IEntityController {
   domain::IClientRepository& client_repo_;
   std::unordered_map<std::string, std::function<void()>> commands_;
 
-  /* Prompts only for the two mutable fields per ADR-019 (status and notes).
-   * Contract-defining fields (type, dates, amount, client) are immutable.
-   * Client resolution and policy selection use the shared cli_helper
-   * free functions instead of being duplicated here. */
   domain::PolicyData promptPolicyEditData(const domain::Policy& current);
 };
 

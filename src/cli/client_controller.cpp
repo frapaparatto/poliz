@@ -10,11 +10,9 @@
 
 namespace {
 
-/* CLI-layer format validators: kept here for immediate re-prompt UX.
- * Domain-layer checks in client.cpp remain the authoritative last line of
- * defence and must not be removed. */
+/* CLI-layer format validators: kept here for immediate re-prompt.
+ * Domain-layer checks in client.cpp remain the authoritative last line of defence and must not be removed. */
 
-/* ordered to match enum declaration; index i corresponds to menu choice i+1 */
 constexpr insura::domain::Client::ClientStatus kStatusOptions[] = {
     insura::domain::Client::ClientStatus::NEW,
     insura::domain::Client::ClientStatus::CONTACTED,
@@ -186,7 +184,6 @@ void ClientController::cmdSearch() {
   std::cout << '\n';
   ClientView::displayAll(found);
 
-  /* Optional drill-down into one entry for full detail. */
   if (found.size() == 1) {
     std::cout << "\nView details? (Enter to view, n to skip): ";
     std::string input;
@@ -397,7 +394,6 @@ void ClientController::cmdEdit() {
 
   domain::ClientData updated = promptEditData(*client);
   try {
-    /* TODO: evaluate whether "No updates made." should stay or just show nothing. */
     if (client_service_.editClient(client->getUuid(), updated))
       std::cout << "\nClient updated successfully.\n";
     else

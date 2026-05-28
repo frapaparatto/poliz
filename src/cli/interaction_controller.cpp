@@ -91,7 +91,7 @@ int promptContractYears() {
   }
 }
 
-/* Returns nullopt on Enter; the service defaults to DRAFT. */
+/* Returns nullopt on Enter */
 std::optional<insura::domain::Contract::ContractStatus> promptContractStatus() {
   for (int i = 0; i < kContractStatusCount; ++i) {
     std::cout << "  " << (i + 1) << ". "
@@ -182,8 +182,6 @@ void InteractionController::cmdAdd() {
       break;
     }
 
-    /* TODO: add a isValidTime function, I should handle 24h and 12h format or
-     * just tell the user the format in advance */
     data.time = promptRequired("Time (HH:MM): ");
 
     std::cout << "Duration:\n";

@@ -12,8 +12,6 @@ std::string lower(std::string s) {
   return s;
 }
 
-/* Trimming whitespaces and beginning and at the end, leaving intermediate ones
- * maybe a check if between there are more than one space could be useful. */
 std::string trim(std::string s) {
   /* trim starting from the left */
   s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char c) {

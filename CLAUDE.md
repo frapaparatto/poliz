@@ -153,4 +153,3 @@ All four conditions must be true simultaneously:
 - Scopes: client, policy, interaction, csv, thread, config, tui, cmake, ci
 - Subject line: imperative mood, no capital after colon, no period, max 72 chars
 - Body: explain why, not what. Wrap at 72 chars. Blank line between subject and body.
-- Do not add "Co-authored-by" trailers or any AI attribution lines to commits.

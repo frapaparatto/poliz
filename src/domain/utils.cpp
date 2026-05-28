@@ -61,8 +61,6 @@ std::string generateUuid() {
   return ss.str();
 }
 
-/* TODO: looks for performance improvements (maybe some conversion from
- * std::string to std::...::path happens under the hood, idk*/
 bool isValidCsvFile(const std::filesystem::path& path) {
   return path.extension() == ".csv";
 }

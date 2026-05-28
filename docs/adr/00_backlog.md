@@ -1,106 +1,160 @@
-# InsuraPro CRM: Architecture Decision Log 
+# InsuraPro CRM: Architecture Decision Log
+
+This file is the canonical index of architectural decisions. Entries
+that have a full write-up live in their own `ADR-XXX.md` file alongside
+this one. Entries without a dedicated file are documented inline below
+and are considered complete: the inline text is the record.
 
 ## Decided
 
 **ADR-001: Primary Key Strategy**
-UUID v4 as internal surrogate PK. Email as user-facing unique constraint
-enforced by the service layer. Decouples internal identity from mutable
-attributes. Implemented in utils.cpp (manual mt19937 generator) and
-enforced in ClientService. Full ADR in ADR-001.md.
+UUID v4 as internal surrogate primary key. Email as user-facing unique
+constraint enforced by the service layer. Decouples internal identity
+from mutable attributes. Implemented in `utils.cpp` (manual `mt19937`
+generator) and enforced in `ClientService`. Full ADR in ADR-001.md.
 
 **ADR-002: Policy as Independent Entity**
-Policy is a separate entity with client_uuid as foreign reference.
+Policy is a separate entity with `client_uuid` as foreign reference.
 Models the real one-to-many relationship (one client, many policies).
-Implemented: IPolicyRepository and Policy class exist.
-
-**ADR-003: Interaction Types via Inheritance**
-Abstract Interaction base class with Appointment and Contract as
-derived classes. Virtual clone() for safe polymorphic retrieval.
-Type-specific fields on each derived class; updated_at_ protected
-so derived setters can update it directly. Full ADR in ADR-003.md.
+Implemented: `IPolicyRepository` and `Policy` class exist. The
+inheritance hierarchy for interactions (Appointment, Contract derived
+from `Interaction`) is treated as part of the domain model and is
+documented in `docs/architecture.md` and ADR-025, not as a separate
+decision record here.
 
 **ADR-004: Startup Flow**
 New / Load menu at startup. Explicit user choice every time.
-Implemented in main.cpp via named helpers in an anonymous namespace
-(cmdNew, cmdLoad, makeRepositories) and a while loop in main() that
-breaks once a valid CrmRepositories is obtained.
+Implemented in `main.cpp` via named helpers in an anonymous namespace
+(`cmdNew`, `cmdLoad`, `makeRepositories`) and a while loop in `main()`
+that breaks once a valid `CrmRepositories` is obtained.
 
 **ADR-005: TUI Interactive Search**
-Stretch goal. Deliberately not implemented to control scope.
-No implementation started.
+Stretch goal. Deliberately not implemented to control scope. No
+implementation started.
 
 **ADR-006: Auto-Save Configuration**
-User-configurable: enabled/disabled toggle and interval in seconds,
+User-configurable: enabled / disabled toggle and interval in seconds,
 stored in a config file. Defaults: enabled, 60 seconds. Configuration
-mechanism documented in ADR-023.md. AutoSave threading documented in
-ADR-024.md.
+mechanism documented in ADR-023. AutoSave threading documented in
+ADR-024.
 
 **ADR-007: CSV Schema Design**
 Comma as global delimiter. Address stored as three separate columns
-(address, city, postal_code). Commas prohibited in free-text fields
-by convention (not enforced by code). Empty optional fields represented
-as empty strings between delimiters. Column layout defined for
-clients.csv (14 cols), policies.csv (10 cols), interactions.csv
-(variable by type). Full ADR in ADR-007.md.
+(`address`, `city`, `postal_code`). Commas prohibited in free-text
+fields by convention (not enforced by code). Empty optional fields
+represented as empty strings between delimiters. Column layout defined
+for `clients.csv` (14 columns), `policies.csv` (10 columns),
+`interactions.csv` (variable by type). Full ADR in ADR-007.md.
 
 **ADR-008: UUID Generation Strategy**
-Manual v4 implementation using mt19937 in utils.cpp. No external
-dependency. Not thread-safe initially; fixed with a static mutex
-in generateUuid when AutoSave introduced a second thread (see ADR-024).
+Manual v4 implementation using `mt19937` in `utils.cpp`. No external
+dependency. Not thread-safe initially; fixed with a static mutex in
+`generateUuid` when AutoSave introduced a second thread (see ADR-024).
 
-**ADR-009: Date/Time Representation**
-Plain std::string used for all date fields (YYYY-MM-DD format validated
-by isValidDate in utils). Migration to std::chrono types deferred until
-a concrete need arises. safe_localtime wrapper added to utils.hpp for
-thread-safe timestamp formatting (see ADR-024).
+**ADR-009: Date / Time Representation**
+Plain `std::string` for all date fields, YYYY-MM-DD format validated
+by `isValidDate` in `utils`. Migration to `std::chrono` types deferred
+until a concrete need arises. `safe_localtime` wrapper added to
+`utils.hpp` for thread-safe timestamp formatting (see ADR-024).
 
-**ADR-010: Soft Delete vs Hard Delete**
-Hard delete. removeClient erases the record and cascades to all related
-policies and interactions. No active flag or deleted_at column. Cascade
-enforced in ClientService::deleteClient, not in the repository layer.
-Full ADR in ADR-010.md.
+**ADR-010: Hard Delete**
+Hard delete chosen over soft delete. `removeClient` erases the record
+and `ClientService::deleteClient` cascades to all related policies and
+interactions. No active flag or deleted_at column.
 
-**ADR-011: Testing Strategy**
-Superseded by ADR-021.md. Catch2 chosen, four testing levels defined,
-no mocking, real temporary files for integration tests.
+**ADR-011: Testing Strategy (superseded by ADR-021)**
+Catch2 chosen, levels defined, no mocking, real temporary files for
+integration tests. The full strategy lives in ADR-021.
 
-**ADR-013: Default Filepath**
-Superseded by ADR-018.md. Directory-based path strategy replaced
-the single-filepath default.
+**ADR-013: Default Filepath (superseded by ADR-018)**
+Directory-based path strategy replaced the single-filepath default.
+The full strategy lives in ADR-018.
 
 **ADR-015: Performance Validation**
-Not implemented. Deliberately deferred post-submission. Seed script
-and std::chrono timing approach remain the planned approach.
+Not implemented. Deliberately deferred post-submission. Seed script and
+`std::chrono` timing remain the planned approach.
 
 **ADR-017: Application Refactoring (Orchestrator + Controller)**
-Application becomes thin orchestrator owning controllers via
-unordered_map of unique_ptr<IEntityController>. Each controller
-(ClientController, PolicyController, InteractionController) implements
-the same interface and owns its own service, dispatch table, and
-command implementations. Two-level menu: init menu for entity selection,
-entity menu for CRUD commands. Save, exit, clear handled at application
-level via handleAppCmds(). Implemented.
+Application becomes a thin orchestrator owning controllers via
+`unordered_map<string, unique_ptr<IEntityController>>`. Each controller
+(`ClientController`, `PolicyController`, `InteractionController`)
+implements the same interface and owns its own service, dispatch table,
+and command implementations. Two-level menu: entity selection, then
+CRUD command. Save, exit, clear are application-level commands handled
+in `handleAppCmds()`. Full ADR in ADR-017.md.
 
 **ADR-018: File Path Strategy (Directory-Based Multi-Entity Persistence)**
-User provides a directory path at startup. Application derives filenames:
-<dir>/clients.csv, <dir>/policies.csv, <dir>/interactions.csv.
-New session: create directory if missing, repos start empty.
-Load session: each repo loads independently, missing file means empty
-state (not an error). Throw only on malformed data or permission errors.
+User provides a directory path at startup. Application derives
+filenames: `<dir>/clients.csv`, `<dir>/policies.csv`,
+`<dir>/interactions.csv`. New session: create directory if missing,
+repos start empty. Load session: each repo loads independently, missing
+file means empty state (not an error). Throw only on malformed data or
+permission errors. Full ADR in ADR-018.md.
 
-**Error Handling Strategy (unnumbered, to be formalized)**
-Asserts for programmer errors (active in debug, removed in release).
-Exceptions for rare runtime errors (I/O, constraint violations, malformed data).
-std::optional for expected absence (find operations returning no result).
-Strong exception safety via transactional pattern (build temporary,
-commit with noexcept move).
+**ADR-019: Policy Business Rules and Fixed Pricing**
+Amount and end_date are system-calculated, not user input. Only type,
+duration, and start_date come from the user. `editPolicy` enforces
+immutability on contract-defining fields (type, duration, start_date,
+amount, end_date). Pricing table is a `static constexpr double[4][4]`
+inside `PolicyService::calculateAmount`. Full ADR in ADR-019.md.
+
+**ADR-020: Error Handling Strategy**
+`assert` for programmer errors (active in debug, removed in release).
+Exceptions for rare runtime errors (I/O, constraint violations,
+malformed data). `std::optional` for expected absence (find returning
+no result). Belt-and-suspenders (assert + throw) for destructive
+operations (delete, edit). `std::invalid_argument` for validation
+errors, `std::runtime_error` for I/O and infrastructure errors. Full
+ADR in ADR-020.md.
+
+**ADR-021: Testing Strategy (Catch2)**
+Catch2 v3.4.0 via FetchContent. Two levels: unit tests (pure functions,
+no I/O) and integration tests (real temporary files, real repositories,
+no mocks). Tags on every `TEST_CASE`. Full ADR in ADR-021.md.
+
+**ADR-022: Policy Display with Client Name Resolution**
+`resolvePolicy` returns `std::optional<std::pair<Policy, Client>>` so
+the view can render the client name alongside the policy without
+controllers calling each other. List displays use a UUID-to-name map
+built once per command. No "Unknown" fallback: an unresolved client
+asserts (programmer error). Full ADR in ADR-022.md.
+
+**ADR-023: Configuration System Design**
+Flat `key=value` configuration file `insurapro.conf` read at startup.
+`CrmConfig` struct with in-class defaults lives in the anonymous
+namespace of `main.cpp`. `parseConfig()` plus `applyConfigLine()`
+handle parsing and validation. Missing file means defaults, silent.
+Unknown keys warn and are ignored. Full ADR in ADR-023.md.
+
+**ADR-024: Auto-Save Threading**
+One background thread owned by `AutoSaveService`, sleeping on a
+`std::condition_variable` with `wait_for` and a stop-flag predicate.
+Wakes on timeout (save dirty repositories) or notification (shutdown).
+Each repository owns its own mutex; `AutoSaveService` never touches
+repository mutexes directly. UUID generation and `safe_localtime` get
+their own thread-safety mechanisms. Application holds the service as
+`std::optional` so it is constructed only when `autosave_enabled` is
+true. Full ADR in ADR-024.md.
+
+**ADR-025: Polymorphic Interaction Retrieval (clone pattern)**
+`Interaction` is an abstract base; `Appointment` and `Contract` derive.
+Repository stores `std::vector<std::unique_ptr<Interaction>>` to avoid
+object slicing. `findByUuid` returns `std::unique_ptr<Interaction>` and
+`findAll` returns a vector of `unique_ptr`. Both build their results by
+calling a virtual `clone()` on each stored entity under the lock so the
+caller gets an independent copy. Each derived class implements
+`clone()` by delegating to its own copy constructor. Full ADR in
+ADR-025.md.
 
 ## Undocumented decisions (brief)
 
-**Atomic save via tmp+rename**
+These are deliberate decisions that did not warrant a full ADR but are
+recorded here so they are not rediscovered as accidents.
+
+**Atomic save via tmp + rename**
 Repositories write to a temporary file and rename it over the target
-on success. A crash mid-write leaves the old file intact rather than
-a half-written one. Deliberate crash-safety pattern; no full ADR written.
+on success. A crash mid-write leaves the old file intact rather than a
+half-written one. Deliberate crash-safety pattern.
 
 **Policy deduplication not enforced**
 The service layer does not reject a policy that is identical to an
@@ -108,32 +162,51 @@ existing one for the same client. Duplicate policies are assumed not
 to be created by the user. Deliberate deferral; to be added in a
 future validation pass.
 
-**No service interfaces (IClientService etc.)**
-IClientRepository and IPolicyRepository exist for dependency injection
-(constructor injection into services, enabling future storage swaps).
-No IClientService, IPolicyService, or IInteractionService interfaces
-exist. 
+**Time format validation deferred**
+Appointment and contract times are stored as plain strings with no
+format constraint. The user can enter `22:10`, `10:00 PM`, or
+`fourteen hundred` and the system accepts it. Validating against a
+canonical format (`HH:MM` 24-hour, or AM / PM) was considered and
+deliberately skipped: the CRM does not schedule reminders or compute
+durations against this field, so a free-form string is sufficient for
+the current use case. To be revisited if reminders or calendar
+integration are added.
 
-**std::optional for conditional AutoSaveService ownership**
-Application holds AutoSaveService as std::optional<AutoSaveService>
-rather than a raw instance or a pointer. If autosave_enabled is false
-in the config, the optional is left empty and no thread is created.
-If enabled, the optional is constructed in-place. 
+**Phone number validation deferred**
+`setPhone` accepts any digit string. Country-code prefix normalization
+(e.g. `+39` for the Italian market) and length checks are not enforced.
+Phone numbers are used only for display, not for outbound calls or
+SMS, so a stricter format does not improve correctness at this stage.
 
-**updated_at_ protected in Interaction**
-The updated_at_ field is declared protected in the Interaction base
-class rather than private. Derived class setters (setTime, setDuration,
-setReport on Appointment; setValue, setStatus on Contract) need to
-update updated_at_ when a field changes. Making it protected avoids
-a base-class setter that would exist only for this internal use.
+**Policy amount and end_date are system-derived, not user input**
+The user only chooses type, duration, and start_date when creating or
+editing a policy. Amount comes from the constexpr pricing table and
+end_date from month arithmetic on start_date plus duration. This is
+treated as a business rule: the price list and contract length are
+company-controlled. Allowing manual entry would let the user produce
+contracts that do not match the published price, which is a business
+problem before a code problem. ADR-019 records the full rationale.
 
-Missing documentations
-- the fact that I decided deliberately to not validate time 22:10 for example or using a specific format like am or pm
-- the fact that I've decided to not validate phone numbers for now
-- the fact that I explicitly decided to avoid user to add in policy the amount and the end date and create a constraints, like a business rule to be pre-calcualted (I could have done also for policies but I don't care for now)  
+**No service interfaces (`IClientService` etc.)**
+`IClientRepository`, `IPolicyRepository`, and `IInteractionRepository`
+exist for dependency injection (constructor injection into services,
+enabling future storage swaps). No `IClientService`, `IPolicyService`,
+or `IInteractionService` interfaces exist because the CRM has no
+alternate service implementations and no mock-based test layer that
+would benefit from them.
 
-Things to remove
-- adr about interactions: is not necessary since I've not discussed the creation of a flat class, a base class with inherited was the main decision and is also documented in the architecture. I eliminated it so please update the document removing all reference to ADR-003
-- ADR-010 could be documented briefly just saying 'soft deleve vs hard delete and I chose the hard one'. Is not necessary to explore each case further
+**`std::optional` for conditional AutoSaveService ownership**
+`Application` holds `AutoSaveService` as `std::optional<AutoSaveService>`
+rather than a raw instance or a pointer. If `autosave_enabled` is false
+in the config, the optional is left empty and no thread is created. If
+enabled, the optional is constructed in place. `std::optional` avoids
+heap allocation and makes the "may or may not exist" semantics explicit
+in the type.
 
-
+**`updated_at_` protected in `Interaction`**
+The `updated_at_` field is declared `protected` in the `Interaction`
+base class rather than `private`. Derived class setters (`setTime`,
+`setDuration`, `setReport` on `Appointment`; `setValue`, `setStatus`
+on `Contract`) need to update `updated_at_` when a field changes.
+Making it `protected` avoids a base-class setter that would exist only
+for this internal use.

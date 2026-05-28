@@ -70,30 +70,20 @@ bool confirmClient(const domain::Client& client, std::string_view entity) {
 }
 
 std::optional<domain::Client> resolveClient(service::ClientService& service) {
+  std::cout << "\nSearch: ";
   std::string term;
-  do {
-    std::cout << "\nSearch: ";
-    std::getline(std::cin, term);
+  std::getline(std::cin, term);
+  term = insura::domain::strops::trim(term);
 
-    /* TODO: decide whether an empty term should re-prompt or exit. Currently
-     * an empty term loops silently; a non-empty term that finds nothing exits
-     * with nullopt. The caller (view/edit/delete) decides how to handle that.
-     */
-    term = insura::domain::strops::trim(term);
-    if (term.empty()) continue;
+  if (term.empty()) return std::nullopt;
 
-    std::vector<domain::Client> found = service.searchClients(term);
-
-    if (found.empty()) {
-      std::cout << "No contacts found.\n";
-    } else if (found.size() == 1) {
-      return found.at(0);
-    } else {
-      return selectClient(found);
-    }
-  } while (term.empty());
-
-  return std::nullopt;
+  std::vector<domain::Client> found = service.searchClients(term);
+  if (found.empty()) {
+    std::cout << "No contacts found.\n";
+    return std::nullopt;
+  }
+  if (found.size() == 1) return found.at(0);
+  return selectClient(found);
 }
 
 domain::Policy selectPolicy(const std::vector<domain::Policy>& policies) {

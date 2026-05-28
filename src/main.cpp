@@ -27,7 +27,15 @@ struct CrmConfig {
 };
 
 static constexpr const char* config_path = "insurapro.conf";
-
+/* 
+ * same pattern encountered in git source code:
+ * - read a config line
+ * - parse it into key -> value
+ * - check the key is actually correct 
+ * - if correct, add in the CrmConfig struct that is used to capture
+ *   all config  
+ * - if incorrect, the default config is used
+ */
 void applyConfigLine(CrmConfig& config, const std::string& key,
                      const std::string& value) {
   if (key == "default_directory") {

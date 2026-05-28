@@ -33,9 +33,7 @@ std::string fmtAmount(double v) {
 void PolicyView::displayAll(
     const std::vector<domain::Policy>& policies,
     const std::unordered_map<std::string, std::string>& client_names) {
-  /* TODO: evaluate if that defensive check is worth doing here or if is better
-   * to ensure each call site actually checks before passing and here adding an
-   * assert */
+
   if (policies.empty()) {
     std::cout << "No policies found.\n";
     return;

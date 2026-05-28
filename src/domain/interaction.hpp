@@ -67,12 +67,6 @@ class Appointment : public Interaction {
 
  private:
   std::string time_;
-  /* here it can be useful to make also fixed as for policy amount
-   * instead of calculating it with a table, use 30min, 1h, 1.5h
-   * and 2h
-   * so another thing to understand is actually the format
-   * int (minutes) -> string for display (?)
-   * */
   int duration_;  // minutes (30, 60, 80, 120)
   std::optional<std::string> report_;
 };
@@ -91,7 +85,6 @@ class Contract : public Interaction {
            std::optional<std::string> expired_date, ContractStatus status,
            std::optional<std::string> notes);
 
-  /* load constructor */
   Contract(std::string uuid, std::string client_uuid, std::string date,
            double value, std::string product_name, std::string signed_date,
            std::optional<std::string> expired_date, ContractStatus status,
@@ -114,8 +107,6 @@ class Contract : public Interaction {
   double value_;
   std::string product_name_;
   std::string signed_date_;
-  /* TODO: candidate for auto-calculation: signed_date + contract duration;
-   * revisit when refactoring contract lifecycle */
   std::optional<std::string> expired_date_;
   ContractStatus contract_status_;
 };

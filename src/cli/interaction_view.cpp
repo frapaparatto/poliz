@@ -41,9 +41,7 @@ const std::string kContractSeparator(kClientWidth + kDateWidth +
 
 std::string fmtAmount(double v) {
   std::ostringstream ss;
-  /* TODO: understand if leave this as € or if write it diretcly
-   * using that sequence is more portable */
-  ss << "\xe2\x82\xac" << std::fixed << std::setprecision(2) << v;
+  ss << "€" << std::fixed << std::setprecision(2) << v;
   return ss.str();
 }
 
