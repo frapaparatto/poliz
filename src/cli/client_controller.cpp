@@ -355,7 +355,6 @@ domain::ClientData ClientController::promptEditData(
 }
 
 void ClientController::cmdList() {
-  std::cout << '\n';
   ClientView::displayAll(repo_.findAll());
 }
 
