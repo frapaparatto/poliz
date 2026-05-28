@@ -66,7 +66,6 @@ void ClientService::deleteClient(std::string_view uuid) {
 
 bool ClientService::editClient(std::string_view uuid,
                                const domain::ClientData& new_client_data) {
-  /* Same pattern used in deleteClient */
   auto client = repo_.findByUuid(uuid);
   assert(client.has_value() && "editClient: UUID not found");
   if (!client) throw std::invalid_argument("client not found");
@@ -144,6 +143,9 @@ bool ClientService::editClient(std::string_view uuid,
 
 std::vector<domain::Client> ClientService::searchClients(
     std::string_view search_term) const {
+  /* Searches first and last name only. Email, company, phone, and
+   * city are intentionally excluded: the resolution pipeline uses
+   * name matching, and email lookup is a separate uniqueness check. */
   std::vector<domain::Client> found;
 
   auto clients = repo_.findAll();

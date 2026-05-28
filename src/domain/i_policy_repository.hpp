@@ -13,8 +13,10 @@
  * without the slicing or abstract type problems present in
  * IInteractionRepository.
  *
- * insertPolicy and updatePolicy accept const Policy& to avoid an
- * unnecessary copy: the repository reads the object and persists it.
+ * insertPolicy and updatePolicy accept Policy by value. The caller
+ * passes a temporary or std::move-casts a local; inside the repository,
+ * std::move transfers ownership into the internal vector with zero
+ * additional copies.
  *
  * findByClientUuid returns std::vector<Policy> because a client can
  * have multiple policies. std::optional is not used: an empty vector

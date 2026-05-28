@@ -44,6 +44,7 @@ Policy::Policy(std::string client_uuid, PolicyType policy_type,
   policy_status_ = policy_status;
   notes_ = std::move(notes);
   created_at_ = utils::currentTimestamp();
+  updated_at_ = created_at_;
 }
 
 Policy::Policy(std::string uuid, std::string client_uuid,

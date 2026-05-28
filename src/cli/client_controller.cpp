@@ -95,7 +95,6 @@ void ClientController::cmdView() {
 void ClientController::cmdAdd() {
   domain::ClientData data;
 
-  /* Required fields */
   std::string first = promptRequired("First name: ");
   data.first_name = insura::domain::strops::capitalize(first);
   std::string last = promptRequired("Last name: ");
@@ -118,7 +117,6 @@ void ClientController::cmdAdd() {
     break;
   }
 
-  /* Optional fields */
   while (true) {
     auto phone = promptOptional("Phone (optional, digits only): ");
     if (!phone.has_value()) break;

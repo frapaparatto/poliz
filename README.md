@@ -219,7 +219,7 @@ configure time. There are two levels of tests.
 | File | Coverage |
 |---|---|
 | `tests_strops.cpp` | trim, lower, capitalize, contains |
-| `tests_utils.cpp` | isValidDate, isLeapYear, isDateAfter, calculateEndDate, isValidEmail, isDigitsOnly, isValidPhone, generateUuid, stringToOptional |
+| `tests_utils.cpp` | isValidDate, isLeapYear, isDateAfter, calculateEndDate, isValidEmail, isDigitsOnly, generateUuid, stringToOptional |
 | `tests_status_converter.cpp` | all ClientStatus enum-to-string and string-to-enum round trips |
 | `tests_interaction_status_converter.cpp` | all InteractionType and ContractStatus converters |
 | `tests_calculate_amount.cpp` | all 16 type/duration combinations in the policy pricing table |

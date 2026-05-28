@@ -153,6 +153,8 @@ bool isValidDate(const std::string& date) {
   int month = stoi(date.substr(5, 2));
   int day = stoi(date.substr(8, 2));
 
+  /* Lower bound is the project start year; historical dates cannot be
+   * entered. Revisit if backfilling older records becomes a requirement. */
   if (year < 2026 || year > 9999) return false;
   if (month < 1 || month > 12) return false;
   if (isLeapYear(year) && month == 2) {

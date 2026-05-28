@@ -90,6 +90,8 @@ runtime surprise.
 
 ### Domain Layer (insura::domain)
 
+Source: `src/domain/`
+
 The shared language of the system. Every other layer depends on this
 module. It contains no I/O, no business logic, no CLI code.
 
@@ -103,9 +105,9 @@ module. It contains no I/O, no business logic, no CLI code.
   `AppointmentData`, `ContractData`
 - Enums and their string converters: `ClientStatus`, `PolicyStatus`,
   `PolicyType`, `InteractionType`, `ContractStatus`
-- Pure utility namespaces: `strops` (trim, lower, capitalize, contains),
-  `utils` (UUID generation, timestamp, email format check, date
-  arithmetic, `safe_localtime`)
+- Pure utility namespaces: `insura::domain::strops` (trim, lower, capitalize,
+  contains), `insura::utils` (UUID generation, timestamp, email format
+  check, date arithmetic, `safe_localtime`)
 
 **What does not live here:**
 
@@ -115,6 +117,8 @@ module. It contains no I/O, no business logic, no CLI code.
 - Any include of a platform or terminal header
 
 ### Data Layer (insura::data)
+
+Source: `src/data/`
 
 The only layer that knows CSV exists. Implements the repository
 interfaces from the domain module.
@@ -139,6 +143,8 @@ interfaces from the domain module.
 
 ### Service Layer (insura::service)
 
+Source: `src/service/`
+
 Owns business logic and orchestration. Each service receives repository
 interfaces by reference in its constructor and never instantiates a
 concrete repository itself.
@@ -153,8 +159,10 @@ concrete repository itself.
 - `InteractionService`: appointment and contract creation, contract
   expiry-date calculation
 - `AutoSaveService`: background thread, `std::condition_variable` with
-  predicate against the stop flag, per-tick check of each repository's
-  `isDirty()`
+  predicate against the stop flag. On each timeout the service calls the
+  bound save callable unconditionally; every repository always writes all
+  records. The `isDirty()` flag is used only by the exit flow to decide
+  whether to prompt the user, not to gate the auto-save write.
 
 **What does not live here:**
 
@@ -168,6 +176,8 @@ policies and interactions atomically before the client itself is
 erased.
 
 ### CLI Layer (insura::cli)
+
+Source: `src/cli/`
 
 Handles user interaction and the command loop.
 
@@ -191,9 +201,15 @@ Handles user interaction and the command loop.
 
 **What does not live here:**
 
-- Repository access. Controllers talk only to services
 - Business logic. The CLI prepares DTOs and lets the service decide
 - CSV knowledge
+
+Note: controllers do access repositories directly for three specific
+operations that are intentionally kept out of the service layer: `save()`
+and `isDirty()` (called by the application-level command loop), `findAll()`
+(for the list command which needs raw iteration), and `findByUuid()` on the
+client repository (for building the client-name map used in policy and
+interaction display). All business rules go through services.
 
 ### Composition Root (main.cpp)
 
@@ -312,7 +328,8 @@ exist only for this internal use.
 
 | Namespace          | Contents                                                                                |
 | ------------------ | --------------------------------------------------------------------------------------- |
-| `insura::domain`   | Entities, repository interfaces, DTOs, enums, `strops`, `utils`                         |
+| `insura::domain`   | Entities, repository interfaces, DTOs, enums, `strops`                                  |
+| `insura::utils`    | UUID generation, timestamp, email and date validation, date arithmetic, `safe_localtime` |
 | `insura::data`     | `CsvClientRepository`, `CsvPolicyRepository`, `CsvInteractionRepository`, `FileHandler` |
 | `insura::service`  | `ClientService`, `PolicyService`, `InteractionService`, `AutoSaveService`               |
 | `insura::cli`      | `Application`, controllers, views, `cli_helper` free functions                          |
@@ -342,12 +359,13 @@ They are the composition root, not a layer.
 
 ## C++ Conventions
 
-- **Constructors** take `std::string` by value and move into members
-  via the initializer list. The member does not exist yet at
-  initialization so there is no buffer to reuse. Pass by value lets the
-  caller decide whether to copy or move into the parameter, then the
-  constructor moves from the parameter into the member. Cost: at most
-  one copy plus one move.
+- **Constructors** take `std::string` by value and move into members.
+  New-object constructors (the ones that call `generateUuid()`) assign
+  via `std::move` in the constructor body, after validation. Load
+  constructors (the ones that accept a pre-existing UUID) use initializer
+  lists. In both cases, pass by value lets the caller decide whether to
+  copy or move into the parameter, then the constructor moves from the
+  parameter into the member. Cost: at most one copy plus one move.
 - **Setters** take `const std::string&` because the member already
   exists and may have an allocated buffer. The assignment operator can
   reuse the existing buffer if the incoming string fits within the
@@ -406,10 +424,12 @@ They are the composition root, not a layer.
    the repository.
 5. The repository locks its mutex, pushes the `Policy` into its vector,
    sets `dirty_` to true, and unlocks. The auto-save thread, sleeping
-   on a condition variable with a 60-second timeout, eventually wakes
-   up, sees `dirty_` is true, locks the mutex, serializes all policies
-   to a temp file, renames it over the original, sets `dirty_` to
-   false, and goes back to sleep.
+   on a condition variable with a 60-second timeout, eventually wakes,
+   calls the bound save callable, which iterates all controllers and calls
+   `save()` on each repository unconditionally. Each repository locks its
+   mutex, serializes all records to a temp file, renames it over the
+   original, sets `dirty_` to false, and unlocks. The thread goes back
+   to sleep.
 
 ### Deleting a Client
 
@@ -448,20 +468,22 @@ Main thread                          Auto-save thread
 ---------------------------------    ---------------------------------
 runs the CLI loop                    wait_for(N seconds, stop_flag)
 user adds a policy:                  on timeout:
-  lock policy mutex                    for each repo:
-  push_back                              lock its mutex
-  dirty_ = true                          if dirty_: save to .tmp,
-  unlock                                   rename, dirty_ = false
+  lock policy mutex                    call save_() unconditionally:
+  push_back                              for each controller:
+  dirty_ = true                            lock repo mutex
+  unlock                                   write all records to .tmp
+                                           rename .tmp over original
+                                           dirty_ = false
                                        go back to wait_for
 on exit:
-  set stop_flag                      wakes on notify_all
-  notify_all                         predicate sees stop_flag
+  set stop_flag                      wakes on condv_.notify_one()
+  notify condvar                     predicate sees stop_flag
   release control lock               exits loop
   join auto-save thread              thread terminates
   program exits
 ```
 
-Three mutexes protect three independent shared states:
+Four mutexes protect four independent shared states:
 
 - The client repository mutex protects `clients_`.
 - The policy repository mutex protects `policies_`.

@@ -46,6 +46,7 @@ Client::Client(std::string first_name, std::string last_name, std::string email,
   lead_status_ = status;
   notes_ = std::move(notes);
   created_at_ = utils::currentTimestamp();
+  updated_at_ = created_at_;
 }
 
 Client::Client(std::string uuid, std::string first_name, std::string last_name,

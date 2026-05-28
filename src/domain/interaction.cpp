@@ -21,6 +21,7 @@ Interaction::Interaction(std::string client_uuid, InteractionType type,
   date_ = std::move(date);
   notes_ = std::move(notes);
   created_at_ = utils::currentTimestamp();
+  updated_at_ = created_at_;
 }
 
 Interaction::Interaction(std::string uuid, std::string client_uuid,

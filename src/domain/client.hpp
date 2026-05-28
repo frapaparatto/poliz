@@ -7,7 +7,6 @@
  * - Google C++ Style Guide:
  *   - Use PascalCase for methods and functions, I've decided to use camelCase
  * - No destructor: I've not allocated memory, default destructor is enough
- * - I should decide if keeping date as string type or change it
  */
 
 namespace insura::domain {

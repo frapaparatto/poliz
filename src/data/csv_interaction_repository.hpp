@@ -19,10 +19,8 @@ class CsvInteractionRepository : public domain::IInteractionRepository {
   void removeInteraction(std::string_view uuid) override;
   void updateInteraction(
       std::unique_ptr<domain::Interaction> updated) override;
-  /* missing */
   std::vector<std::unique_ptr<domain::Interaction>> filterByType(
       domain::Interaction::InteractionType type) const override;
-  /* missing */
   std::vector<std::unique_ptr<domain::Interaction>> filterByDate(
       std::string_view start_date, std::string_view end_date) const override;
   std::vector<std::unique_ptr<domain::Interaction>> findByClientUuid(

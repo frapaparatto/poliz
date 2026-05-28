@@ -82,7 +82,7 @@ void applyConfigLine(CrmConfig& config, const std::string& key,
       int interval = std::stoi(value);
       if (interval <= 0) {
         std::cerr << "\nConfig warning [" << key << "]: '" << value
-                  << "' is not a positive intege. Default used: "
+                  << "' is not a positive integer. Default used: "
                   << config.autosave_interval_seconds << "\n";
         return;
       }

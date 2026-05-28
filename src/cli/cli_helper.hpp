@@ -62,12 +62,11 @@ resolveInteraction(service::InteractionService& interaction_service,
                    service::ClientService& client_service);
 
 /*
- * Truncates a string to max characters, appending "..." when cut.
+ * Truncates a string to exactly max characters, replacing the last three
+ * with "..." when the string is longer than max. Prevents long values from
+ * overflowing into adjacent std::setw columns.
  * The optional overload returns an empty string when the optional is empty.
- *
- * Implemented to avoid that a fields move another one in the 
- * display functions
- *
+ * Assumes max >= 3.
  */
 std::string truncate(const std::string& s, std::size_t max);
 std::string truncate(const std::optional<std::string>& opt, std::size_t max);

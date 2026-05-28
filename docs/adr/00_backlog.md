@@ -248,6 +248,36 @@ bookkeeping for the auto-save thread, not data the caller can observe
 or change. `save()` being `const` says "saving does not modify the
 records I store"; the auto-save flag is below that surface.
 
+**`searchClients` searches first and last name only**
+`ClientService::searchClients` matches against `getFirstName()` and
+`getLastName()` using case-insensitive substring search. Email, phone,
+company, and city are not searched. This is intentional: the resolution
+pipeline is a name-based lookup and email is a separate uniqueness
+constraint handled by `findByEmail`. Extending search to other fields
+is deferred.
+
+**`isValidDate` lower year bound is 2026**
+`utils::date::isValidDate` rejects any year before 2026 (the project
+start year). Historical policy or appointment dates cannot be entered.
+This is a deliberate simplification; the bound should be revisited if
+backfilling older records becomes a requirement.
+
+**Auto-save writes all records unconditionally**
+`AutoSaveService` calls the bound save callable on every timeout
+regardless of whether data has changed. Each repository's `save()`
+always writes all records to disk. The `dirty_` flag is used only by
+`Application::cmdExit` to decide whether to prompt the user before
+closing, not to gate the write. This means the disk is written to every
+interval even on idle sessions. The cost is acceptable at CLI scale.
+
+**Input normalization in the CLI layer**
+The CLI layer normalizes user input before passing it to the service:
+first name, last name, job title, company, address, city, and notes are
+passed through `strops::capitalize`; email is passed through
+`strops::lower`. Phone and postal code are validated as digits-only but
+not otherwise transformed. The service receives already-normalized data
+and performs no additional normalization itself.
+
 **`filterByType` and `filterByDate` are linear scans**
 `CsvInteractionRepository::filterByType` and `filterByDate` lock the
 repository mutex and walk the full `interactions_` vector, cloning

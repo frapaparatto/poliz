@@ -13,12 +13,10 @@ std::string lower(std::string s) {
 }
 
 std::string trim(std::string s) {
-  /* trim starting from the left */
   s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char c) {
             return !std::isspace(c);
           }));
 
-  /* trim starting from right */
   s.erase(std::find_if(s.rbegin(), s.rend(),
                        [](unsigned char c) { return !std::isspace(c); })
               .base(),
