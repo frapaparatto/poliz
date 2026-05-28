@@ -7,7 +7,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(Catch2)
-add_executable(crm_tests tests_strops.cpp tests_utils.cpp tests_status_converter.cpp tests_interaction_status_converter.cpp tests_domain.cpp tests_calculate_amount.cpp integration_tests.cpp)
+add_executable(crm_tests test_strops.cpp test_utils.cpp test_status_converter.cpp test_interaction_status_converter.cpp test_domain.cpp test_calculate_amount.cpp integration_test.cpp)
 target_compile_options(crm_tests PRIVATE -Wall -Wextra -Wpedantic)
 target_link_libraries(crm_tests 
   PRIVATE 

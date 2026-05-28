@@ -276,7 +276,61 @@ first name, last name, job title, company, address, city, and notes are
 passed through `strops::capitalize`; email is passed through
 `strops::lower`. Phone and postal code are validated as digits-only but
 not otherwise transformed. The service receives already-normalized data
-and performs no additional normalization itself.
+and performs no additional normalization itself. Normalization belongs
+to the CLI because it is a presentation concern: the service assumes
+clean data and should not know that a human typed the input. A future
+non-CLI caller (batch import, REST handler) is responsible for
+normalizing its own input before calling the service.
+
+**Dual validation in CLI and domain layers**
+Email and phone format are validated twice: once in the CLI
+(`cmdAdd`, `cmdEdit`) for UX (re-prompt immediately, do not reach the
+service with bad data), and once in the domain (`Client` constructor
+and setters) as an invariant guard. The duplication is intentional.
+The domain copy is the last line of defence and must not trust that
+any caller has pre-validated. The CLI copy is a presentation
+responsibility: exceptions from the domain are for unexpected
+failures, not for guiding the user through a form.
+
+**`strops` module extracted for cross-layer sharing**
+`lower`, `capitalize`, `trim`, and `ci_contains` started in the
+anonymous namespace of `application.cpp`. `ClientService::searchClients`
+also needs case-insensitive comparison but cannot reach into
+`application.cpp` (anonymous namespace has internal linkage). The
+functions were moved to `src/domain/strops.hpp` and `strops.cpp` in
+`insura::domain::strops`. Domain is the correct home because it is the
+only layer that all other layers can depend on without violating the
+dependency rule.
+
+**Case-insensitive search uses `std::search` with BinaryPredicate**
+`strops::ci_contains` uses `std::search` from `<algorithm>` with a
+lambda comparator (`tolower(a) == tolower(b)`) instead of lowercasing
+copies of the haystack strings before comparing. The copy approach
+costs two heap allocations per client per search call; `std::search`
+with a predicate does zero allocations and compares characters in
+place. For name-length strings the asymptotic cost is the same; the
+allocation pressure is eliminated. Storing names pre-lowercased was
+rejected because it destroys user-typed casing permanently (names
+like `iPhone` or `van der Berg` cannot be recovered once lowercased).
+
+**Client entity resolution pipeline (`resolveClient`, `selectClient`)**
+`selectClient` and `resolveClient` are free functions in `insura::cli`
+in `cli_helper.hpp` / `cli_helper.cpp`, shared across all three
+controllers. `selectClient` is a pure UI primitive: given a non-empty
+list, print a numbered menu, return the chosen item. `resolveClient`
+owns the full search interaction: prompt for a term, call
+`searchClients`, branch on 0 / 1 / N results, call `selectClient`
+only when disambiguation is needed. Controllers never call each other
+to resolve entities; they call `resolveClient` or `resolvePolicy`
+with service references injected at construction.
+
+**`cmdSearch` produces a list; `cmdView` resolves to one record**
+`cmdSearch` calls `searchClients` and passes the results to
+`ClientView::displayAll`. It does not resolve to a single client.
+`cmdView`, `cmdEdit`, and `cmdDelete` call `resolveClient`, which
+returns `std::optional<Client>`. The distinction is intentional:
+search is a browsing operation that ends with display; view/edit/delete
+are action operations that require a single unambiguous target.
 
 **`filterByType` and `filterByDate` are linear scans**
 `CsvInteractionRepository::filterByType` and `filterByDate` lock the

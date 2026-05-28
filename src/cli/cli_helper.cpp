@@ -137,7 +137,7 @@ std::optional<std::pair<domain::Policy, domain::Client>> resolvePolicy(
 std::string truncate(const std::string& s, std::size_t max) {
   if (s.empty()) return "";
   if (s.size() <= max) return s;
-  return s.substr(0, max - 3) + "...";
+  return s.substr(0, max - 5) + "...";
 }
 
 std::string truncate(const std::optional<std::string>& opt, std::size_t max) {

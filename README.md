@@ -1,8 +1,7 @@
 # InsuraPro CRM
 
 A console CRM application for an insurance company, written in C++17 with a clean
-layered architecture, background auto-save threading, CSV persistence, and
-comprehensive automated tests.
+layered architecture, background auto-save threading, CSV persistence, and automated tests.
 
 This project was built from scratch as a learning exercise in C++. Most of the
 language concepts, patterns, and standard library features used here were studied
@@ -16,7 +15,7 @@ The application runs entirely in the terminal. Data is persisted to CSV files in
 a user-specified directory. A background thread saves automatically at a
 configurable interval so that data is never lost between manual saves.
 
-### What the application can do
+### Features
 
 - **Clients**: add, list, search, view detail, edit all fields, delete (with
 cascade removal of all associated policies and interactions).
@@ -218,14 +217,14 @@ configure time. There are two levels of tests.
 
 | File | Coverage |
 |---|---|
-| `tests_strops.cpp` | trim, lower, capitalize, contains |
-| `tests_utils.cpp` | isValidDate, isLeapYear, isDateAfter, calculateEndDate, isValidEmail, isDigitsOnly, generateUuid, stringToOptional |
-| `tests_status_converter.cpp` | all ClientStatus enum-to-string and string-to-enum round trips |
-| `tests_interaction_status_converter.cpp` | all InteractionType and ContractStatus converters |
-| `tests_calculate_amount.cpp` | all 16 type/duration combinations in the policy pricing table |
-| `tests_domain.cpp` | Client and Policy construction and invariant enforcement |
+| `test_strops.cpp` | trim, lower, capitalize, contains |
+| `test_utils.cpp` | isValidDate, isLeapYear, isDateAfter, calculateEndDate, isValidEmail, isDigitsOnly, generateUuid, stringToOptional |
+| `test_status_converter.cpp` | all ClientStatus enum-to-string and string-to-enum round trips |
+| `test_interaction_status_converter.cpp` | all InteractionType and ContractStatus converters |
+| `test_calculate_amount.cpp` | all 16 type/duration combinations in the policy pricing table |
+| `test_domain.cpp` | Client and Policy construction and invariant enforcement |
 
-**Integration tests** (`integration_tests.cpp`) use real temporary files and
+**Integration tests** (`integration_test.cpp`) use real temporary files and
 real repository instances. No mocks. The repository interfaces exist for
 dependency injection and a future storage swap, not for creating test doubles.
 A mock would test the mock, not the serialization or file I/O. Integration tests
@@ -314,7 +313,7 @@ manually verified before being committed. Functions generated this way include:
     * The `safe_localtime` inline wrapper in `utils.hpp`, after the threading
   problem was identified, the two platform-specific APIs were read in their
   documentation, and the preprocessor macro structure was understood.
-    * The `GENERATE` table in `tests_calculate_amount.cpp`, after the Catch2
+    * The `GENERATE` table in `test_calculate_amount.cpp`, after the Catch2
   parameterized test pattern was learned and applied manually in the status
   converter tests.
 
