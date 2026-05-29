@@ -20,13 +20,13 @@ namespace {
 struct CrmConfig {
   bool autosave_enabled = true;
   int autosave_interval_seconds = 60;
-  std::string default_directory = "insurapro_data";
+  std::string default_directory = "poliz_data";
   std::string clients_filename = "clients.csv";
   std::string policies_filename = "policies.csv";
   std::string interactions_filename = "interactions.csv";
 };
 
-static constexpr const char* config_path = "insurapro.conf";
+static constexpr const char* config_path = "poliz.conf";
 /* 
  * same pattern encountered in git source code:
  * - read a config line
@@ -124,7 +124,7 @@ CrmConfig parseConfig() {
 constexpr int kInitWidth = 16;
 
 void displayMainMenu() {
-  std::cout << "\nInsuraPro CRM: Main menu\n\n"
+  std::cout << "\npoliz: Main menu\n\n"
             << "  " << std::left << std::setw(kInitWidth) << "new"
             << "create a new empty crm\n"
             << "  " << std::setw(kInitWidth) << "load"

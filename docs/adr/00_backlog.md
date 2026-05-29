@@ -1,4 +1,4 @@
-# InsuraPro CRM: Architecture Decision Log
+# poliz: Architecture Decision Log
 
 This file is the canonical index of architectural decisions. Entries
 that have a full write-up live in their own `ADR-XXX.md` file alongside
@@ -133,7 +133,7 @@ built once per command. No "Unknown" fallback: an unresolved client
 asserts (programmer error). Full ADR in ADR-022.md.
 
 **ADR-023: Configuration System Design**
-Flat `key=value` configuration file `insurapro.conf` read at startup.
+Flat `key=value` configuration file `poliz.conf` read at startup.
 `CrmConfig` struct with in-class defaults lives in the anonymous
 namespace of `main.cpp`. `parseConfig()` plus `applyConfigLine()`
 handle parsing and validation. Missing file means defaults, silent.

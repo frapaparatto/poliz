@@ -1,7 +1,6 @@
-# InsuraPro CRM
+# poliz
 
-A console CRM application for an insurance company, written in C++17 with a clean
-layered architecture, background auto-save threading, CSV persistence, and automated tests.
+A console CRM for a fictitious Italian insurance company, written in C++17.
 
 This project was built from scratch as a learning exercise in C++. Most of the
 language concepts, patterns, and standard library features used here were studied
@@ -9,7 +8,7 @@ and implemented for the first time during the project itself.
 
 ## Overview
 
-InsuraPro CRM manages three core entities for a fictitious Italian insurance
+poliz manages three core entities for a fictitious Italian insurance
 company: clients, policies, and interactions (appointments and contracts).
 The application runs entirely in the terminal. Data is persisted to CSV files in
 a user-specified directory. A background thread saves automatically at a
@@ -85,12 +84,12 @@ cmake --build build-release
 ### Run
 
 ```bash
-./build-debug/src/crm-app
+./build-debug/src/poliz
 ```
 
 The startup menu offers `new` (create an empty CRM in a directory) or `load`
 (load existing CSV files from a directory). The default directory is read from
-`insurapro.conf` in the project root.
+`poliz.conf` in the project root.
 
 ### Run the test suite
 
@@ -108,13 +107,13 @@ Or run the test binary directly for verbose Catch2 output:
 ### CMake target layout
 
 ```
-InsuraProCRM
+poliz
   src/
     insura_domain   (static library)
     insura_data     (static library, links insura_domain)
     insura_service  (static library, links insura_domain)
     insura_cli      (static library, links insura_domain, insura_service)
-    crm-app         (executable, links all four libraries)
+    poliz           (executable, links all four libraries)
   tests/
     crm_tests       (executable, links Catch2, insura_data, insura_service, insura_cli)
 ```
@@ -247,15 +246,15 @@ double comparisons.
 
 ## Configuration
 
-The file `insurapro.conf` in the project root is read at startup. If it is
+The file `poliz.conf` in the project root is read at startup. If it is
 missing, defaults apply silently. The user edits the file directly; there is no
 config command in the menu.
 
 ```ini
-# InsuraPro CRM Configuration
+# poliz Configuration
 autosave_enabled=true
 autosave_interval_seconds=60
-default_directory=insurapro_data
+default_directory=poliz_data
 clients_filename=clients.csv
 policies_filename=policies.csv
 interactions_filename=interactions.csv

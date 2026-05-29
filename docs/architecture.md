@@ -1,8 +1,8 @@
-# InsuraPro CRM: Architecture
+# poliz: Architecture
 
 ## Overview
 
-InsuraPro CRM is a terminal application written in C++17 that manages
+poliz is a terminal application written in C++17 that manages
 clients, policies, and interactions (appointments and contracts) for a
 fictitious Italian insurance company. The codebase is organized into
 four layers with dependencies flowing strictly inward. Data is persisted
@@ -212,7 +212,7 @@ interaction display). All business rules go through services.
 ### Composition Root (main.cpp)
 
 `main.cpp` is the only place in the codebase that knows every layer
-exists. It reads `insurapro.conf` (ADR-023), prompts for new or load,
+exists. It reads `poliz.conf` (ADR-023), prompts for new or load,
 constructs the three CSV repositories, wires the three services on top,
 and hands everything to `Application`.
 
