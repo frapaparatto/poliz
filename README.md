@@ -1,14 +1,10 @@
 # poliz
 
-A console CRM for a fictitious Italian insurance company, written in C++17.
-
-This project was built from scratch as a learning exercise in C++. Most of the
-language concepts, patterns, and standard library features used here were studied
-and implemented for the first time during the project itself.
+A working C++ console CRM application with clean layered architecture, modern C++ idioms, threading (auto-save), and file I/O.
 
 ## Overview
 
-poliz manages three core entities for a fictitious Italian insurance
+poliz manages three core entities for an insurance
 company: clients, policies, and interactions (appointments and contracts).
 The application runs entirely in the terminal. Data is persisted to CSV files in
 a user-specified directory. A background thread saves automatically at a

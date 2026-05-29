@@ -3,8 +3,8 @@
 ## Overview
 
 poliz is a terminal application written in C++17 that manages
-clients, policies, and interactions (appointments and contracts) for a
-fictitious Italian insurance company. The codebase is organized into
+clients, policies, and interactions (appointments and contracts) for an
+insurance company. The codebase is organized into
 four layers with dependencies flowing strictly inward. Data is persisted
 to CSV files. A background thread saves automatically at a configurable
 interval.
