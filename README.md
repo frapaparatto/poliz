@@ -326,3 +326,5 @@ AI-assisted.
 - Stricter input validation: time format enforcement (HH:MM 24-hour), phone number country-code normalization, policy deduplication on type + client + start date.
 - Address autocomplete via geocoding API.
 - Performance test suite with generated datasets to measure load, save, and search under realistic volume.
+- Migration to C++20 and progressively C++23 to replace the manual workarounds documented in the "What C++20 would change" section with standard library facilities.
+- HTTP API layer exposing all CRM operations (add, list, search, edit, delete for clients, policies, and interactions) over network requests, so the terminal UI becomes one client among many rather than the only interface to the application.
